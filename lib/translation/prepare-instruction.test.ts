@@ -56,6 +56,14 @@ describe("prepareInstruction", () => {
         expect(original.annotations).toHaveLength(2);
     });
 
+    it("keeps safe instruction metadata without unprotected positions", () => {
+        const original = {...step("abcd", [ingredient(0, 2)]),
+            missedUsages: ["salt"], custom: {flag: true}};
+        const prepared = prepareInstruction(original);
+        expect(prepared.metadata).toEqual({type: "STEP", missedUsages: ["salt"], custom: {flag: true}});
+        expect(prepared.metadata).not.toHaveProperty("annotations");
+    });
+
     it.each([
         [-1, 2],
         [0, 0],

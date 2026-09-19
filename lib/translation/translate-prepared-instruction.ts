@@ -5,6 +5,7 @@ import type {PreparedInstruction, ProtectedAnnotation} from "./prepare-instructi
 export interface TranslatedPreparedInstruction {
   text: string;
   protectedAnnotations: ProtectedAnnotation[];
+  metadata?: PreparedInstruction["metadata"];
 }
 
 export interface TranslatePreparedInstructionOptions extends TranslateOptions {
@@ -62,5 +63,9 @@ export async function translatePreparedInstruction(
     );
   }
 
-  return {text, protectedAnnotations: structuredClone(prepared.protectedAnnotations)};
+  return {
+    text,
+    protectedAnnotations: structuredClone(prepared.protectedAnnotations),
+    ...(prepared.metadata ? {metadata: structuredClone(prepared.metadata)} : {}),
+  };
 }

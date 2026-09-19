@@ -17,6 +17,8 @@ export interface ProtectedAnnotation {
 export interface PreparedInstruction {
     text: string;
     protectedAnnotations: ProtectedAnnotation[];
+    /** Safe instruction-level fields; source annotation positions are excluded. */
+    metadata?: Omit<Instruction, "text" | "annotations">;
 }
 
 export function prepareInstruction(
@@ -100,8 +102,11 @@ export function prepareInstruction(
             text.slice(offset + length);
     }
 
+    const {text: _sourceText, annotations: _sourceAnnotations, ...metadata} = instruction;
     return {
         text,
         protectedAnnotations,
+        ...(Object.keys(metadata).some((key) => key !== "type")
+            ? {metadata: structuredClone(metadata)} : {}),
     };
 }

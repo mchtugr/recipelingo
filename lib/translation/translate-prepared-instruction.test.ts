@@ -60,6 +60,15 @@ describe("translatePreparedInstruction", () => {
     expect(result).toEqual({text: "Soğanları karıştırın", protectedAnnotations: []});
   });
 
+  it("carries independent instruction metadata", async () => {
+    const prepared: PreparedInstruction = {text: "Mix <0>",
+      protectedAnnotations: [protectedAnnotation],
+      metadata: {type: "STEP", missedUsages: ["salt"]}};
+    const result = await translatePreparedInstruction(prepared, options, translator("Karıştır <0>"));
+    expect(result.metadata).toEqual(prepared.metadata);
+    expect(result.metadata).not.toBe(prepared.metadata);
+  });
+
   it("rejects inconsistent prepared metadata before translation", async () => {
     const translate = translator("Karıştırın");
     const error = await translatePreparedInstruction(
