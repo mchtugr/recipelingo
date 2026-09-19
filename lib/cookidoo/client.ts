@@ -1,0 +1,165 @@
+import { isCookidooHostname } from "./domains";
+import type {
+  CreatedRecipe,
+  Instruction,
+  RecipeMetadataPatch,
+} from "./types";
+
+const FULL_RECIPE_MEDIA_TYPE =
+    "application/vnd.vorwerk.customer-recipe.full+json";
+
+export interface CookidooClientOptions {
+  hostname: string;
+  locale: string;
+  fetch?: typeof fetch;
+}
+
+export class CookidooClient {
+  private readonly origin: string;
+  private readonly locale: string;
+  private readonly request: typeof fetch;
+
+  constructor({
+                hostname,
+                locale,
+                fetch: request = fetch,
+              }: CookidooClientOptions) {
+    if (!isCookidooHostname(hostname)) {
+      throw new TypeError(
+          `Unsupported Cookidoo hostname: ${hostname}`,
+      );
+    }
+
+    assertRouteSegment(
+        locale,
+        "locale",
+    );
+
+    this.origin =
+        `https://${hostname.toLowerCase()}`;
+
+    this.locale = locale;
+    this.request = request;
+  }
+
+  async getCreatedRecipe(
+      recipeId: string,
+  ): Promise<CreatedRecipe> {
+    const response =
+        await this.request(
+            this.recipeUrl(recipeId),
+            {
+              method: "GET",
+              credentials: "include",
+
+              headers: {
+                Accept:
+                FULL_RECIPE_MEDIA_TYPE,
+              },
+            },
+        );
+
+    this.assertOk(response);
+
+    return (
+        await response.json()
+    ) as CreatedRecipe;
+  }
+
+  patchRecipeMetadata(
+      recipeId: string,
+      metadata: RecipeMetadataPatch,
+  ): Promise<void> {
+    return this.patch(
+        recipeId,
+        metadata,
+    );
+  }
+
+  patchRecipeInstructions(
+      recipeId: string,
+      instructions: Instruction[],
+  ): Promise<void> {
+    return this.patch(
+        recipeId,
+        {
+          instructions,
+        },
+    );
+  }
+
+  private async patch(
+      recipeId: string,
+      fields:
+          | RecipeMetadataPatch
+          | { instructions: Instruction[] },
+  ): Promise<void> {
+    const response =
+        await this.request(
+            this.recipeUrl(recipeId),
+            {
+              method: "PATCH",
+              credentials: "include",
+
+              headers: {
+                Accept:
+                FULL_RECIPE_MEDIA_TYPE,
+
+                "Content-Type":
+                    "application/json",
+              },
+
+              body:
+                  JSON.stringify(fields),
+            },
+        );
+
+    this.assertOk(response);
+  }
+
+  private recipeUrl(
+      recipeId: string,
+  ): string {
+    assertRouteSegment(
+        recipeId,
+        "recipeId",
+    );
+
+    return (
+        `${this.origin}/created-recipes/` +
+        `${encodeURIComponent(this.locale)}/` +
+        `${encodeURIComponent(recipeId)}`
+    );
+  }
+
+  private assertOk(
+      response: Response,
+  ): void {
+    if (!response.ok) {
+      const status =
+          response.statusText
+              ? ` ${response.statusText}`
+              : "";
+
+      throw new Error(
+          `Cookidoo request failed: ${response.status}${status}`,
+      );
+    }
+  }
+}
+
+function assertRouteSegment(
+    value: string,
+    name: string,
+): void {
+  if (
+      !value.trim() ||
+      value === "." ||
+      value === ".." ||
+      value.includes("/")
+  ) {
+    throw new TypeError(
+        `A valid single route segment is required for ${name}`,
+    );
+  }
+}
