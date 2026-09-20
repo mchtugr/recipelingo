@@ -51,6 +51,29 @@ describe('detectCookidooPage', () => {
     );
   });
 
+  it('detects a created recipe edit page', () => {
+    assert.deepEqual(
+      detectCookidooPage(
+        'https://cookidoo.com.tr/created-recipes/tr-TR/01M30FAEV1QW09P2Q6296H5DNZ/edit',
+      ),
+      {
+        type: 'created-recipe',
+        hostname: 'cookidoo.com.tr',
+        locale: 'tr-TR',
+        recipeId: '01M30FAEV1QW09P2Q6296H5DNZ',
+      },
+    );
+  });
+
+  it('does not detect an unsupported created recipe action', () => {
+    assert.deepEqual(
+      detectCookidooPage(
+        'https://cookidoo.com.tr/created-recipes/tr-TR/abc/delete',
+      ),
+      { type: 'cookidoo', hostname: 'cookidoo.com.tr' },
+    );
+  });
+
   it('detects another Cookidoo page', () => {
     assert.deepEqual(
       detectCookidooPage('https://cookidoo.com.tr/search/tr-TR'),

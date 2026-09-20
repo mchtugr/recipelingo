@@ -56,12 +56,14 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
     };
   }
 
-  if (
-    segments.length === 3 &&
+  const isCreatedRecipePath =
     firstSegment === 'created-recipes' &&
     secondSegment !== undefined &&
-    thirdSegment !== undefined
-  ) {
+    thirdSegment !== undefined &&
+    (segments.length === 3 ||
+      (segments.length === 4 && fourthSegment === 'edit'));
+
+  if (isCreatedRecipePath) {
     return {
       type: 'created-recipe',
       hostname: parsedUrl.hostname,
