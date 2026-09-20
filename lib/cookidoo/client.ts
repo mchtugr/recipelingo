@@ -22,7 +22,7 @@ export class CookidooClient {
   constructor({
                 hostname,
                 locale,
-                fetch: request = fetch,
+                fetch: request,
               }: CookidooClientOptions) {
     if (!isCookidooHostname(hostname)) {
       throw new TypeError(
@@ -39,7 +39,7 @@ export class CookidooClient {
         `https://${hostname.toLowerCase()}`;
 
     this.locale = locale;
-    this.request = request;
+    this.request = request ?? globalThis.fetch.bind(globalThis);
   }
 
   async getCreatedRecipe(
