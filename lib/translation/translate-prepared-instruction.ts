@@ -51,6 +51,24 @@ export async function translatePreparedInstruction(
     );
   }
 
+  if (!prepared.text.trim()) {
+    return {
+      text: prepared.text,
+      protectedAnnotations:
+          structuredClone(
+              prepared.protectedAnnotations,
+          ),
+      ...(prepared.metadata
+          ? {
+            metadata:
+                structuredClone(
+                    prepared.metadata,
+                ),
+          }
+          : {}),
+    };
+  }
+
   const text = await translate(
     {sourceLanguage: options.sourceLanguage, targetLanguage: options.targetLanguage, text: prepared.text},
     {onDownloadProgress: options.onDownloadProgress},
