@@ -66,6 +66,27 @@ export class CookidooClient {
     ) as CreatedRecipe;
   }
 
+  /** Imports a public Cookidoo recipe using the request captured from Cookidoo's UI. */
+  async addPublicRecipeToCookidoo(publicRecipeId: string): Promise<string> {
+    assertRouteSegment(publicRecipeId, "publicRecipeId");
+    const recipeUrl = `${this.origin}/recipes/recipe/${encodeURIComponent(this.locale)}/${encodeURIComponent(publicRecipeId)}`;
+    const response = await this.request(
+      `${this.origin}/created-recipes/${encodeURIComponent(this.locale)}/add-to-cookidoo`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {Accept: "application/json", "Content-Type": "application/json"},
+        body: JSON.stringify({recipeUrl, partnerId: "cookidoo"}),
+      },
+    );
+    this.assertOk(response);
+    const body: unknown = await response.json();
+    if (!isCreatedRecipeImportResponse(body)) {
+      throw new Error("Cookidoo import response is missing a valid recipeId");
+    }
+    return body.recipeId;
+  }
+
   patchRecipeMetadata(
       recipeId: string,
       metadata: RecipeMetadataPatch,
@@ -146,6 +167,17 @@ export class CookidooClient {
       );
     }
   }
+}
+
+interface CreatedRecipeImportResponse {
+  recipeId: string;
+}
+
+function isCreatedRecipeImportResponse(value: unknown): value is CreatedRecipeImportResponse {
+  if (typeof value !== "object" || value === null || !("recipeId" in value)) return false;
+  const recipeId = value.recipeId;
+  return typeof recipeId === "string" && Boolean(recipeId.trim()) &&
+    recipeId !== "." && recipeId !== ".." && !recipeId.includes("/");
 }
 
 function assertRouteSegment(

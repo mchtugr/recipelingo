@@ -75,6 +75,37 @@ afterEach(() => {
 });
 
 describe("CookidooClient", () => {
+  describe("addPublicRecipeToCookidoo", () => {
+    it("sends the captured import request and returns the Created Recipe ID", async () => {
+      const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({
+        recipeId: "created-123",
+        recipeContent: {name: "Empolvados chilenos"},
+      }));
+      const result = await createClient(mockFetch).addPublicRecipeToCookidoo("r912684");
+      expect(result).toBe("created-123");
+      expect(mockFetch).toHaveBeenCalledExactlyOnceWith(
+        "https://cookidoo.com.tr/created-recipes/tr-TR/add-to-cookidoo",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {Accept: "application/json", "Content-Type": "application/json"},
+          body: JSON.stringify({
+            recipeUrl: "https://cookidoo.com.tr/recipes/recipe/tr-TR/r912684",
+            partnerId: "cookidoo",
+          }),
+        },
+      );
+    });
+
+    it("rejects failed or malformed responses", async () => {
+      const mockFetch = vi.fn<typeof fetch>().mockResolvedValueOnce(createResponse({}, {status: 400}));
+      const client = createClient(mockFetch);
+      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow("Cookidoo request failed: 400");
+      mockFetch.mockResolvedValueOnce(createResponse({recipeContent: {}}));
+      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow("missing a valid recipeId");
+    });
+  });
+
   describe("constructor", () => {
     it("accepts a supported Cookidoo hostname", () => {
       expect(

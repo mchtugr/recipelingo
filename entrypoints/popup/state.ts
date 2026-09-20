@@ -33,3 +33,16 @@ export function getTranslationErrorMessage(error: unknown): string {
   }
   return 'Tarif çevrilemedi. Lütfen tekrar deneyin.';
 }
+
+export function getPublicRecipeTranslationInput(page: PopupPageState, sourceLanguage: string):
+    {hostname: string; locale: string; publicRecipeId: string; sourceLanguage: string; targetLanguage: 'tr'} | undefined {
+  if (page.status !== 'public-recipe' || !page.pageInfo.hostname || !page.pageInfo.locale ||
+      !page.pageInfo.recipeId || !sourceLanguage) return undefined;
+  return {
+    hostname: page.pageInfo.hostname,
+    locale: page.pageInfo.locale,
+    publicRecipeId: page.pageInfo.recipeId,
+    sourceLanguage,
+    targetLanguage: 'tr',
+  };
+}

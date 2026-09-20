@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { AnnotationMarkerIntegrityError } from '../../lib/translation/translate-prepared-instruction';
-import { classifyActiveTab, getTranslationErrorMessage } from './state';
+import { classifyActiveTab, getPublicRecipeTranslationInput, getTranslationErrorMessage } from './state';
+
+describe('getPublicRecipeTranslationInput', () => {
+  it('uses detected host, locale, public ID and chosen source language', () => {
+    const page = classifyActiveTab({id: 12, url: 'https://cookidoo.com.tr/recipes/recipe/tr-TR/r912684'});
+    expect(getPublicRecipeTranslationInput(page, 'es')).toEqual({
+      hostname: 'cookidoo.com.tr', locale: 'tr-TR', publicRecipeId: 'r912684',
+      sourceLanguage: 'es', targetLanguage: 'tr',
+    });
+    expect(getPublicRecipeTranslationInput(page, '')).toBeUndefined();
+  });
+});
 
 describe('classifyActiveTab', () => {
   it.each([
