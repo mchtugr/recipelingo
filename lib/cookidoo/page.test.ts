@@ -38,7 +38,7 @@ describe('detectCookidooPage', () => {
       detectCookidooPage(
         'https://cookidoo.com.tr/recipes/recipe/tr-TR/r93674',
       ),
-      { type: 'public-recipe', locale: 'tr-TR', recipeId: 'r93674' },
+      { type: 'public-recipe', hostname: 'cookidoo.com.tr', locale: 'tr-TR', recipeId: 'r93674' },
     );
   });
 
@@ -47,14 +47,14 @@ describe('detectCookidooPage', () => {
       detectCookidooPage(
         'https://cookidoo.com.tr/created-recipes/tr-TR/abc123',
       ),
-      { type: 'created-recipe', locale: 'tr-TR', recipeId: 'abc123' },
+      { type: 'created-recipe', hostname: 'cookidoo.com.tr', locale: 'tr-TR', recipeId: 'abc123' },
     );
   });
 
   it('detects another Cookidoo page', () => {
     assert.deepEqual(
       detectCookidooPage('https://cookidoo.com.tr/search/tr-TR'),
-      { type: 'cookidoo' },
+      { type: 'cookidoo', hostname: 'cookidoo.com.tr' },
     );
   });
 
@@ -83,14 +83,14 @@ describe('detectCookidooPage', () => {
         detectCookidooPage(
           `https://cookidoo.com.tr/recipes/recipe/${locale}/r12345`,
         ),
-        { type: 'public-recipe', locale, recipeId: 'r12345' },
+        { type: 'public-recipe', hostname: 'cookidoo.com.tr', locale, recipeId: 'r12345' },
       );
 
       assert.deepEqual(
         detectCookidooPage(
           `https://cookidoo.com.tr/created-recipes/${locale}/recipe-123`,
         ),
-        { type: 'created-recipe', locale, recipeId: 'recipe-123' },
+        { type: 'created-recipe', hostname: 'cookidoo.com.tr', locale, recipeId: 'recipe-123' },
       );
     }
   });
@@ -99,7 +99,7 @@ describe('detectCookidooPage', () => {
     for (const hostname of COOKIDOO_HOSTS) {
       assert.deepEqual(
         detectCookidooPage(`https://${hostname}/recipes/recipe/en-GB/r42`),
-        { type: 'public-recipe', locale: 'en-GB', recipeId: 'r42' },
+        { type: 'public-recipe', hostname, locale: 'en-GB', recipeId: 'r42' },
       );
     }
   });
@@ -109,7 +109,7 @@ describe('detectCookidooPage', () => {
       detectCookidooPage(
         'https://cookidoo.com.tr/recipes/recipe/en-GB/r42?foo=bar#steps',
       ),
-      { type: 'public-recipe', locale: 'en-GB', recipeId: 'r42' },
+      { type: 'public-recipe', hostname: 'cookidoo.com.tr', locale: 'en-GB', recipeId: 'r42' },
     );
   });
 
@@ -123,7 +123,7 @@ describe('detectCookidooPage', () => {
     ];
 
     for (const url of invalidPaths) {
-      assert.deepEqual(detectCookidooPage(url), { type: 'cookidoo' });
+      assert.deepEqual(detectCookidooPage(url), { type: 'cookidoo', hostname: 'cookidoo.com.tr' });
     }
   });
 
@@ -133,6 +133,7 @@ describe('detectCookidooPage', () => {
       'https://cookidoo.com.tr.example.com/recipes/recipe/tr-TR/r93674',
       'https://fakecookidoo.de/recipes/recipe/tr-TR/r93674',
       'https://example.com/cookidoo/recipes/recipe/tr-TR/r93674',
+      'http://cookidoo.com.tr/recipes/recipe/tr-TR/t1'
     ];
 
     for (const url of lookalikes) {
@@ -149,7 +150,7 @@ describe('detectCookidooPage', () => {
       detectCookidooPage(
         new URL('https://cookidoo.com.tr/created-recipes/it-IT/abc'),
       ),
-      { type: 'created-recipe', locale: 'it-IT', recipeId: 'abc' },
+      { type: 'created-recipe', hostname: 'cookidoo.com.tr', locale: 'it-IT', recipeId: 'abc' },
     );
   });
 });

@@ -8,6 +8,7 @@ export type CookidooPageType =
 
 export interface CookidooPageInfo {
   type: CookidooPageType;
+  hostname?: string;
   locale?: string;
   recipeId?: string;
 }
@@ -28,6 +29,18 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   const segments = parsedUrl.pathname.split('/').filter(Boolean);
   const [firstSegment, secondSegment, thirdSegment, fourthSegment] = segments;
 
+  console.log({parsedUrl})
+  if (
+      parsedUrl.protocol !== "https:" ||
+      !isCookidooHostname(
+          parsedUrl.hostname,
+      )
+  ) {
+    return {
+      type: "other",
+    };
+  }
+
   if (
     segments.length === 4 &&
     firstSegment === 'recipes' &&
@@ -37,6 +50,7 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   ) {
     return {
       type: 'public-recipe',
+      hostname: parsedUrl.hostname,
       locale: thirdSegment,
       recipeId: fourthSegment,
     };
@@ -50,10 +64,11 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   ) {
     return {
       type: 'created-recipe',
+      hostname: parsedUrl.hostname,
       locale: secondSegment,
       recipeId: thirdSegment,
     };
   }
 
-  return { type: 'cookidoo' };
+  return { type: 'cookidoo', hostname: parsedUrl.hostname };
 }

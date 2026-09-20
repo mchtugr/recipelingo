@@ -1,18 +1,19 @@
-:root {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-}
-
-main {
-  padding: 16px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 20px;
-}
+:root { font-family: system-ui, sans-serif; line-height: 1.45; color: #20352f; background: #f8faf8; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 340px; }
+main { padding: 22px; }
+h1 { margin: 0 0 16px; font-size: 20px; letter-spacing: -.02em; }
+p { margin: 0 0 14px; }
+.fields { display: grid; gap: 7px; margin: 20px 0; }
+label { font-size: 13px; font-weight: 650; }
+select { width: 100%; min-height: 38px; margin-bottom: 10px; padding: 6px 10px; border: 1px solid #a8b8ae; border-radius: 7px; background: white; color: inherit; font: inherit; }
+select:disabled { background: #eef2ee; color: #455b4d; opacity: 1; }
+button { width: 100%; min-height: 40px; padding: 8px 12px; border: 0; border-radius: 7px; background: #176b48; color: white; font: inherit; font-weight: 650; cursor: pointer; }
+button:disabled { background: #b8c6bd; cursor: default; }
+button.secondary { border: 1px solid #176b48; background: white; color: #176b48; }
+select:focus-visible, button:focus-visible { outline: 3px solid #78b894; outline-offset: 2px; }
+.notice { margin-top: 16px; padding: 12px; border-radius: 7px; background: #eaf2ec; }
+.notice p:last-child { margin-bottom: 0; }
+.success { background: #e4f3e7; }
+.success p { margin-bottom: 10px; }
+.error { color: #8a2d2d; background: #fff0ee; }
