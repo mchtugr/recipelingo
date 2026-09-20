@@ -76,7 +76,8 @@ const base = (
       step("Stir gently"),
     ],
 ): CreatedRecipe => ({
-  recipe: {
+  recipeId: "r1",
+  recipeContent: {
     name: "Cake",
     ingredients: [
       {
@@ -94,7 +95,7 @@ const base = (
     ],
     hints: "Serve warm",
     instructions,
-    author: "Original author",
+    author: {type: "USER", name: "Original author"},
   },
 });
 
@@ -275,6 +276,8 @@ describe("translateCreatedRecipe", () => {
           },
         });
 
+        if (!tts.position) throw new Error("Expected TTS position");
+
         expect(
             result.instructions[0]!.text.slice(
                 tts.position.offset,
@@ -294,6 +297,8 @@ describe("translateCreatedRecipe", () => {
             time: 180,
           },
         });
+
+        if (!mode.position) throw new Error("Expected MODE position");
 
         expect(
             result.instructions[1]!.text.slice(
@@ -372,9 +377,9 @@ describe("translateCreatedRecipe", () => {
           step("  "),
         ]);
 
-        delete source.recipe.hints;
+        delete source.recipeContent.hints;
 
-        source.recipe.ingredients[0]!
+        source.recipeContent.ingredients[0]!
             .text = " ";
 
         const {
@@ -481,7 +486,7 @@ describe("translateCreatedRecipe", () => {
         );
 
         expect(
-            source.recipe
+            source.recipeContent
                 .instructions[0]!
                 .annotations,
         ).toHaveLength(1);

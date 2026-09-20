@@ -69,7 +69,7 @@ export async function translateCreatedRecipe(
       : Promise.resolve(text);
 
   report({stage: "loading"});
-  const {recipe} = await client.getCreatedRecipe(recipeId);
+  const {recipeContent: recipe} = await client.getCreatedRecipe(recipeId);
 
   report({stage: "translating-metadata"});
   const name = await translatePlainText(recipe.name);

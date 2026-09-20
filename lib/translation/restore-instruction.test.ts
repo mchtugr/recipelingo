@@ -43,10 +43,11 @@ describe("restoreInstruction", () => {
       protectedAnnotations: [tts("<0>"), mode("<1>")]});
     expect(result.text).toBe("Önce 5 sn/hız 5, ardından Hamur/3 dk uygulayın.");
     for (const [annotation, expected] of result.annotations.map((a, i) => [a, ["5 sn/hız 5", "Hamur/3 dk"][i]] as const)) {
+      if (!annotation.position) throw new Error("Expected annotation position");
       expect(result.text.slice(annotation.position.offset,
         annotation.position.offset + annotation.position.length)).toBe(expected);
     }
-    expect(result.annotations[1]?.position.offset).toBe(result.text.indexOf("Hamur/3 dk"));
+    expect(result.annotations[1]?.position?.offset).toBe(result.text.indexOf("Hamur/3 dk"));
   });
 
   it("matches marker names exactly, including <1> and <10>", () => {
@@ -141,7 +142,7 @@ describe("restoreInstruction", () => {
     expect(tts).toBeDefined();
     expect(mode).toBeDefined();
 
-    if (!tts || !mode) {
+    if (!tts?.position || !mode?.position) {
       throw new Error(
           "Expected restored TTS and MODE annotations",
       );

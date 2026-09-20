@@ -1,121 +1,289 @@
-/** JSON-compatible values returned by the Created Recipe API. */
-export type JsonValue =
-    | string
-    | number
-    | boolean
-    | null
-    | JsonValue[]
-    | { [key: string]: JsonValue };
+export interface AnnotationPosition {
+    offset: number;
+    length: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Recipe                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export interface CreatedRecipe {
+    recipeId: string;
+
+    authorId?: string;
+    parentRecipeId?: string;
+
+    modifiedAt?: string;
+    createdAt?: string;
+
+    status?: string;  // "ACTIVE"
+    workStatus?: string; // "PRIVATE"
+
+    recipeContent: RecipeContent;
+
+    [key: string]: unknown;
+}
+
+export interface RecipeContent {
+    name: string;
+
+    image?: string;
+
+    ingredients: Ingredient[];
+    instructions: Instruction[];
+
+    descriptiveAssets?: DescriptiveAsset[];
+
+    isImageCopyrightOwned?: boolean;
+    isBasedOn?: string;
+
+    author?: RecipeAuthor;
+
+    prepTime?: number;
+    totalTime?: number;
+
+    tools?: string[];
+
+    yield?: RecipeYield;
+
+    hints?: string;
+
+    [key: string]: unknown;
+}
+
+export interface RecipeAuthor {
+    type: string;
+    name: string;
+
+    [key: string]: unknown;
+}
+
+export interface RecipeYield {
+    value: number;
+    unitText: string;
+
+    [key: string]: unknown;
+}
+
+export interface DescriptiveAsset {
+    square?: string;
+    portrait?: string;
+    landscape?: string;
+
+    [key: string]: unknown;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Ingredients                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export interface Ingredient {
-  type: "INGREDIENT";
-  text: string;
+    type: "INGREDIENT";
+    text: string;
 
-  [key: string]: unknown;
+    [key: string]: unknown;
 }
 
-export interface AnnotationPosition {
-  offset: number;
-  length: number;
+/* -------------------------------------------------------------------------- */
+/* Instructions                                                                */
+/* -------------------------------------------------------------------------- */
+
+export interface Instruction {
+    type: "STEP";
+    text: string;
+    annotations: Annotation[];
+
+    missedUsages?: unknown[];
+
+    [key: string]: unknown;
 }
+
+/* -------------------------------------------------------------------------- */
+/* TTS                                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type Direction =
+    | "CW"
+    | "CCW";
 
 export type Temperature =
-  | { value: "varoma"; unit?: never }
-  | { value: string; unit: "C" | "F" };
+    | {
+    value: "varoma";
+    unit?: never;
+}
+    | {
+    value: string;
+    unit: "C" | "F";
+};
+
+export interface TtsData {
+    /** Duration in seconds. */
+    time?: number;
+
+    /** Thermomix blade speed, e.g. "1", "3.5", "5". */
+    speed?: string;
+
+    temperature?: Temperature;
+    direction?: Direction;
+
+    [key: string]: unknown;
+}
 
 export interface TtsAnnotation {
-  type: "TTS";
-  position: AnnotationPosition;
-  data: {
-    time?: number;
-    speed?: string;
-    direction?: "CW" | "CCW";
-    temperature?: Temperature;
+    type: "TTS";
+    position: AnnotationPosition;
+    data: TtsData;
+
     [key: string]: unknown;
-  };
-  [key: string]: unknown;
+}
+
+/* -------------------------------------------------------------------------- */
+/* MODE                                                                        */
+/* -------------------------------------------------------------------------- */
+
+export interface ModeData {
+    time?: number;
+
+    speed?: string;
+    direction?: Direction;
+    temperature?: Temperature;
+
+    pulseCount?: number;
+    pulseCountMax?: number;
+
+    power?: "Gentle" | string;
+    accessory?: "Varoma" | string;
+
+    [key: string]: unknown;
 }
 
 export interface ModeAnnotation {
-  type: "MODE";
-  name: string;
-  position: AnnotationPosition;
-  data: {
-    time?: number;
-    pulseCount?: number;
+    type: "MODE";
+
+    /**
+     * Known values include dough, turbo, blend, warm_up, rice_cooker, etc.
+     *
+     * Keep this open because Cookidoo may introduce additional modes and
+     * the formatter decides which modes it can safely restore.
+     */
+    name: string;
+
+    position: AnnotationPosition;
+    data: ModeData;
+
     [key: string]: unknown;
-  };
-  [key: string]: unknown;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Ingredient annotations                                                      */
+/* -------------------------------------------------------------------------- */
+
+export interface VolumeAnnotation {
+    type: "VOLUME";
+
+    position: AnnotationPosition;
+
+    data: {
+        amount?: number;
+        amountMax?: number;
+
+        unit?: string;
+        unitText?: string;
+
+        [key: string]: unknown;
+    };
+
+    [key: string]: unknown;
+}
+
+export type IngredientDescription =
+    | string
+    | {
+    text: string;
+    annotations: VolumeAnnotation[];
+
+    [key: string]: unknown;
+};
+
+export interface IngredientAnnotation {
+    type:
+        | "INGREDIENT"
+        | "MISSED_INGREDIENT";
+
+    position: AnnotationPosition;
+
+    data: {
+        description: IngredientDescription;
+
+        notes?: string[];
+
+        [key: string]: unknown;
+    };
+
+    [key: string]: unknown;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Unknown annotations                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Forward-compatible fallback for Cookidoo annotation types we do not yet
+ * understand.
+ *
+ * Translation logic must not assume these positions remain valid after
+ * translating text.
+ */
 export interface GenericAnnotation {
-  type: string;
-  position: AnnotationPosition;
-  data?: unknown;
-  [key: string]: unknown;
+    type: string;
+
+    position?: AnnotationPosition;
+    data?: unknown;
+
+    [key: string]: unknown;
 }
 
-export type ProtectedCookingAnnotation = TtsAnnotation | ModeAnnotation;
-export type Annotation = ProtectedCookingAnnotation | GenericAnnotation;
+/* -------------------------------------------------------------------------- */
+/* Annotation unions                                                           */
+/* -------------------------------------------------------------------------- */
+
+export type ProtectedCookingAnnotation =
+    | TtsAnnotation
+    | ModeAnnotation;
+
+export type Annotation =
+    | TtsAnnotation
+    | ModeAnnotation
+    | IngredientAnnotation
+    | GenericAnnotation;
 
 export function isProtectedCookingAnnotation(
-  annotation: Annotation,
+    annotation: Annotation,
 ): annotation is ProtectedCookingAnnotation {
-  return annotation.type === "TTS" || annotation.type === "MODE";
+    return (
+        annotation.type === "TTS" ||
+        annotation.type === "MODE"
+    );
 }
 
-export interface Instruction {
-  type: "STEP";
-  text: string;
-  annotations: Annotation[];
-
-  missedUsages?: unknown[];
-
-  [key: string]: unknown;
-}
+/* -------------------------------------------------------------------------- */
+/* PATCH payloads                                                              */
+/* -------------------------------------------------------------------------- */
 
 /**
- * GET response envelope.
+ * Supported root-level metadata fields for Created Recipe PATCH requests.
  *
- * The `recipe` object itself must never be sent back
- * as the PATCH payload envelope.
- */
-export interface CreatedRecipe {
-  recipe: CreatedRecipeContent;
-
-  [key: string]: unknown;
-}
-
-export interface CreatedRecipeContent {
-  name: string;
-
-  ingredients: Ingredient[];
-
-  instructions: Instruction[];
-
-  hints?: string;
-
-  /*
-   * Other API fields are intentionally left open
-   * until we model them in later commits.
-   */
-  [key: string]: unknown;
-}
-
-/**
- * Fields allowed in the metadata PATCH body.
- *
- * These fields are sent at the JSON root.
+ * Do not wrap these inside `recipeContent`.
  */
 export interface RecipeMetadataPatch {
-  name?: string;
-  ingredients?: Ingredient[];
-  hints?: string;
+    name?: string;
+    ingredients?: Ingredient[];
+    hints?: string;
 }
 
 /**
- * Exact body shape for instruction PATCHes.
+ * Exact instruction PATCH body.
  */
 export interface RecipeInstructionsPatch {
-  instructions: Instruction[];
+    instructions: Instruction[];
 }

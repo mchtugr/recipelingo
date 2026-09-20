@@ -36,7 +36,8 @@ const instruction: Instruction = {
 };
 
 const createdRecipe: CreatedRecipe = {
-  recipe: {
+  recipeId: "recipe-id",
+  recipeContent: {
     name: "Test Recipe",
     ingredients: [ingredient],
     instructions: [instruction],
