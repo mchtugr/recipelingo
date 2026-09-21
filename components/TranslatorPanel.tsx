@@ -3,7 +3,9 @@ import {
     useState,
 } from 'react';
 
-import {CookidooClient} from '../lib/cookidoo/client';
+import {
+    CookidooClient,
+} from '../lib/cookidoo/client';
 
 import {
     translateCreatedRecipe,
@@ -107,11 +109,43 @@ function progressMessage(
             );
 
         case 'saving-instructions':
-            return 'Adımlar kaydediliyor…';
+            return (
+                'Adımlar kaydediliyor…'
+            );
 
         case 'complete':
-            return 'Çeviri tamamlandı.';
+            return (
+                'Çeviri tamamlanıyor…'
+            );
     }
+}
+
+function instructionProgressPercent(
+    progress:
+    PublicRecipeTranslationProgress,
+): number | undefined {
+    if (
+        progress.stage !==
+        'translating-instructions' ||
+        progress.current === undefined ||
+        progress.total === undefined ||
+        progress.total <= 0
+    ) {
+        return undefined;
+    }
+
+    return Math.min(
+        100,
+        Math.max(
+            0,
+            Math.round(
+                (
+                    progress.current /
+                    progress.total
+                ) * 100,
+            ),
+        ),
+    );
 }
 
 function createCreatedRecipeUrl(
@@ -120,7 +154,7 @@ function createCreatedRecipeUrl(
 ): string {
     return (
         `https://${page.hostname}` +
-        `/created-recipes/` +
+        '/created-recipes/' +
         `${encodeURIComponent(
             page.locale,
         )}/` +
@@ -152,18 +186,10 @@ function TranslatorPanel({
     const isRunning =
         translation.status === 'running';
 
-    const hasCreatedRecipe =
-        (
-            translation.status ===
-            'success' ||
-            translation.status === 'error'
-        ) &&
-        Boolean(
-            translation.createdRecipeId,
-        );
-
     useEffect(() => {
-        onRunningChange?.(isRunning);
+        onRunningChange?.(
+            isRunning,
+        );
     }, [
         isRunning,
         onRunningChange,
@@ -171,22 +197,10 @@ function TranslatorPanel({
 
     async function handleTranslate() {
         if (
-            isRunning ||
+            translation.status !==
+            'idle' ||
             !sourceLanguage
         ) {
-            return;
-        }
-
-        if (
-            typeof Translator ===
-            'undefined'
-        ) {
-            setTranslation({
-                status: 'error',
-                message:
-                    'Bu ortamda Chrome Translator API kullanılamıyor.',
-            });
-
             return;
         }
 
@@ -338,7 +352,10 @@ function TranslatorPanel({
                 status: 'error',
 
                 message: isPublic
-                    ? 'Tarif Created Recipe olarak oluşturulamadı.'
+                    ? (
+                        'Tarif Cookidoo’ya eklenemedi. ' +
+                        'Lütfen tekrar deneyin.'
+                    )
                     : getTranslationErrorMessage(
                         error,
                     ),
@@ -357,15 +374,9 @@ function TranslatorPanel({
     }
 
     const canTranslate =
-        Boolean(
-            sourceLanguage &&
-            !isRunning &&
-            !(
-                page.type ===
-                'public-recipe' &&
-                hasCreatedRecipe
-            ),
-        );
+        translation.status ===
+        'idle' &&
+        Boolean(sourceLanguage);
 
     const createdRecipeUrl =
         (
@@ -380,221 +391,477 @@ function TranslatorPanel({
             )
             : undefined;
 
-    return (
-        <main className="ct-panel">
-            <p>
-                {page.type ===
-                'created-recipe'
-                    ? 'Bu Created Recipe çevrilebilir.'
-                    : (
-                        'Bu Cookidoo tarifi ' +
-                        'Created Recipe olarak ' +
-                        'oluşturulup çevrilebilir.'
-                    )}
-            </p>
-
-            <div className="fields">
-                <div className="field">
-                    <label
-                        htmlFor="source-language"
-                    >
-                        Tarif dili
-                    </label>
-
-                    <select
-                        id="source-language"
-                        value={
-                            sourceLanguage
-                        }
-                        disabled={
-                            isRunning ||
-                            (
-                                page.type ===
-                                'public-recipe' &&
-                                hasCreatedRecipe
-                            )
-                        }
-                        onChange={(
-                            event,
-                        ) => {
-                            handleSourceChange(
-                                event.target.value,
-                            );
-                        }}
-                    >
-                        <option value="">
-                            Dil seçin
-                        </option>
-
-                        {SOURCE_LANGUAGES.map(
-                            ([value, label]) => (
-                                <option
-                                    key={value}
-                                    value={value}
-                                >
-                                    {label}
-                                </option>
-                            ),
+    function renderIdle() {
+        return (
+            <div className="ct-view">
+                <p className="ct-intro">
+                    {page.type ===
+                    'created-recipe'
+                        ? (
+                            'Bu Created Recipe ' +
+                            'çevrilebilir.'
+                        )
+                        : (
+                            'Bu Cookidoo tarifi ' +
+                            'Created Recipe olarak ' +
+                            'oluşturulup çevrilebilir.'
                         )}
-                    </select>
+                </p>
+
+                <div className="fields">
+                    <div className="field">
+                        <label
+                            htmlFor="source-language"
+                        >
+                            Tarif dili
+                        </label>
+
+                        <select
+                            id="source-language"
+                            value={sourceLanguage}
+                            onChange={(event) => {
+                                handleSourceChange(
+                                    event.target.value,
+                                );
+                            }}
+                        >
+                            <option value="">
+                                Dil seçin
+                            </option>
+
+                            {SOURCE_LANGUAGES.map(
+                                ([value, label]) => (
+                                    <option
+                                        key={value}
+                                        value={value}
+                                    >
+                                        {label}
+                                    </option>
+                                ),
+                            )}
+                        </select>
+                    </div>
+
+                    <div className="field">
+                        <label
+                            htmlFor="target-language"
+                        >
+                            Hedef dil
+                        </label>
+
+                        <select
+                            id="target-language"
+                            value="tr"
+                            disabled
+                        >
+                            <option value="tr">
+                                Türkçe
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
-                <div className="field">
-                    <label
-                        htmlFor="target-language"
-                    >
-                        Hedef dil
-                    </label>
+                <div className="actions">
+                    {onCancel && (
+                        <button
+                            type="button"
+                            className="secondary"
+                            onClick={onCancel}
+                        >
+                            İptal
+                        </button>
+                    )}
 
-                    <select
-                        id="target-language"
-                        value="tr"
-                        disabled
-                    >
-                        <option value="tr">
-                            Türkçe
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="actions">
-                {onCancel && (
                     <button
                         type="button"
-                        className="secondary"
-                        disabled={isRunning}
-                        onClick={onCancel}
+                        className="primary"
+                        disabled={
+                            !canTranslate
+                        }
+                        onClick={() => {
+                            void handleTranslate();
+                        }}
                     >
-                        İptal
+                        {page.type ===
+                        'public-recipe'
+                            ? 'Oluştur ve çevir'
+                            : 'Tarifi çevir'}
                     </button>
-                )}
-
-                <button
-                    type="button"
-                    className="primary"
-                    disabled={
-                        !canTranslate
-                    }
-                    onClick={() => {
-                        void handleTranslate();
-                    }}
-                >
-                    {page.type ===
-                    'public-recipe'
-                        ? 'Oluştur ve çevir'
-                        : 'Tarifi çevir'}
-                </button>
+                </div>
             </div>
+        );
+    }
 
-            {translation.status ===
-                'running' && (
+    function renderRunning(
+        state: Extract<
+            TranslationUiState,
+            {
+                status: 'running';
+            }
+        >,
+    ) {
+        const percent =
+            instructionProgressPercent(
+                state.progress,
+            );
+
+        return (
+            <section
+                className="
+          ct-state
+          ct-state-running
+        "
+                role="status"
+                aria-live="polite"
+            >
+                <div
+                    className="
+            ct-state-icon
+            ct-state-icon-progress
+          "
+                    aria-hidden="true"
+                >
+          <span
+              className="ct-spinner"
+          />
+                </div>
+
+                <h3 className="ct-state-title">
+                    Tarif çevriliyor…
+                </h3>
+
+                <p
+                    className="
+            ct-state-description
+          "
+                >
+                    {progressMessage(
+                        state.progress,
+                    )}
+                </p>
+
+                <div className="ct-progress">
                     <div
-                        role="status"
-                        aria-live="polite"
-                        className="notice"
+                        className="
+              ct-progress-track
+            "
+                        role="progressbar"
+                        aria-label={
+                            percent === undefined
+                                ? 'Çeviri ilerlemesi'
+                                : (
+                                    'Çeviri ilerlemesi: ' +
+                                    `yüzde ${percent}`
+                                )
+                        }
+                        aria-valuemin={
+                            percent === undefined
+                                ? undefined
+                                : 0
+                        }
+                        aria-valuemax={
+                            percent === undefined
+                                ? undefined
+                                : 100
+                        }
+                        aria-valuenow={
+                            percent
+                        }
                     >
-                        <p>
-                            {progressMessage(
-                                translation.progress,
-                            )}
-                        </p>
-
-                        {translation.downloadPercent !==
-                            undefined &&
-                            translation.downloadPercent <
-                            100 && (
-                                <p>
-                                    Dil modeli
-                                    hazırlanıyor… %
-                                    {
-                                        translation.downloadPercent
+                        <div
+                            className={
+                                percent === undefined
+                                    ? (
+                                        'ct-progress-value ' +
+                                        'ct-progress-indeterminate'
+                                    )
+                                    : 'ct-progress-value'
+                            }
+                            style={
+                                percent === undefined
+                                    ? undefined
+                                    : {
+                                        width:
+                                            `${percent}%`,
                                     }
-                                </p>
-                            )}
+                            }
+                        />
                     </div>
-                )}
+                </div>
 
-            {translation.status ===
-                'success' && (
-                    <div
-                        role="status"
-                        aria-live="polite"
-                        className="notice success"
-                    >
-                        <p>
-                            Tarif başarıyla
-                            çevrildi.
+                {state.downloadPercent !==
+                    undefined &&
+                    state.downloadPercent <
+                    100 && (
+                        <p
+                            className="
+                ct-progress-secondary
+              "
+                        >
+                            Dil modeli
+                            hazırlanıyor… %
+                            {
+                                state.downloadPercent
+                            }
                         </p>
+                    )}
 
-                        {createdRecipeUrl &&
-                        onOpenCreatedRecipe ? (
+                <p
+                    className="
+            ct-state-hint
+          "
+                >
+                    Çeviri tamamlanana
+                    kadar bu pencereyi
+                    açık tutun.
+                </p>
+            </section>
+        );
+    }
+
+    function renderSuccess() {
+        return (
+            <section
+                className="
+          ct-state
+          ct-state-success
+        "
+                role="status"
+                aria-live="polite"
+            >
+                <div
+                    className="ct-state-icon"
+                    aria-hidden="true"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                        />
+
+                        <path
+                            d="
+                m8 12
+                2.6 2.6
+                L16.5 9
+              "
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </svg>
+                </div>
+
+                <h3 className="ct-state-title">
+                    Tarif başarıyla
+                    çevrildi
+                </h3>
+
+                <p
+                    className="
+            ct-state-description
+          "
+                >
+                    Çeviri Cookidoo'ya
+                    kaydedildi.
+                </p>
+
+                <div
+                    className="
+            ct-result-actions
+          "
+                >
+                    {createdRecipeUrl &&
+                    onOpenCreatedRecipe ? (
+                        <button
+                            type="button"
+                            className="primary"
+                            onClick={() => {
+                                onOpenCreatedRecipe(
+                                    createdRecipeUrl,
+                                );
+                            }}
+                        >
+                            Oluşturulan
+                            tarifi aç
+                        </button>
+                    ) : (
+                        onReload && (
                             <button
                                 type="button"
-                                className="secondary"
-                                onClick={() =>
-                                    onOpenCreatedRecipe(
-                                        createdRecipeUrl,
-                                    )
+                                className="primary"
+                                onClick={
+                                    onReload
                                 }
                             >
-                                Oluşturulan tarifi
-                                aç
+                                Sayfayı yenile
                             </button>
-                        ) : (
-                            onReload && (
-                                <button
-                                    type="button"
-                                    className="secondary"
-                                    onClick={
-                                        onReload
-                                    }
-                                >
-                                    Sayfayı yenile
-                                </button>
-                            )
-                        )}
-                    </div>
-                )}
+                        )
+                    )}
 
-            {translation.status ===
-                'error' && (
-                    <div
-                        role="alert"
-                        className="notice error"
+                    {onCancel && (
+                        <button
+                            type="button"
+                            className="secondary"
+                            onClick={onCancel}
+                        >
+                            Kapat
+                        </button>
+                    )}
+                </div>
+            </section>
+        );
+    }
+
+    function renderError(
+        state: Extract<
+            TranslationUiState,
+            {
+                status: 'error';
+            }
+        >,
+    ) {
+        return (
+            <section
+                className="
+          ct-state
+          ct-state-error
+        "
+                role="alert"
+            >
+                <div
+                    className="ct-state-icon"
+                    aria-hidden="true"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
                     >
-                        <p>
-                            {translation.message}
-                        </p>
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                        />
 
-                        {createdRecipeUrl && (
-                            <>
-                                <p>
-                                    Created Recipe
-                                    oluşturuldu; çeviri
-                                    veya kaydetme
-                                    tamamlanmamış
-                                    olabilir.
-                                </p>
+                        <path
+                            d="
+                M12 7.8v5.4
+                M12 16.5v.1
+              "
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                </div>
 
-                                {onOpenCreatedRecipe && (
-                                    <button
-                                        type="button"
-                                        className="secondary"
-                                        onClick={() =>
-                                            onOpenCreatedRecipe(
-                                                createdRecipeUrl,
-                                            )
-                                        }
-                                    >
-                                        Oluşturulan tarifi
-                                        aç
-                                    </button>
-                                )}
-                            </>
-                        )}
-                    </div>
+                <h3 className="ct-state-title">
+                    Tarif çevrilemedi
+                </h3>
+
+                <p
+                    className="
+            ct-state-description
+          "
+                >
+                    {state.message}
+                </p>
+
+                {state.createdRecipeId && (
+                    <p
+                        className="
+              ct-state-description
+            "
+                    >
+                        Created Recipe
+                        oluşturuldu ancak
+                        çeviri veya kaydetme
+                        tamamlanmamış
+                        olabilir.
+                    </p>
                 )}
+
+                <div
+                    className="
+            ct-result-actions
+          "
+                >
+                    {createdRecipeUrl &&
+                    onOpenCreatedRecipe ? (
+                        <button
+                            type="button"
+                            className="primary"
+                            onClick={() => {
+                                onOpenCreatedRecipe(
+                                    createdRecipeUrl,
+                                );
+                            }}
+                        >
+                            Oluşturulan
+                            tarifi aç
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            className="primary"
+                            onClick={() => {
+                                setTranslation({
+                                    status: 'idle',
+                                });
+                            }}
+                        >
+                            Tekrar dene
+                        </button>
+                    )}
+
+                    {onCancel && (
+                        <button
+                            type="button"
+                            className="secondary"
+                            onClick={onCancel}
+                        >
+                            Kapat
+                        </button>
+                    )}
+                </div>
+            </section>
+        );
+    }
+
+    function renderCurrentState() {
+        switch (
+            translation.status
+            ) {
+            case 'idle':
+                return renderIdle();
+
+            case 'running':
+                return renderRunning(
+                    translation,
+                );
+
+            case 'success':
+                return renderSuccess();
+
+            case 'error':
+                return renderError(
+                    translation,
+                );
+        }
+    }
+
+    return (
+        <main className="ct-panel">
+            {renderCurrentState()}
         </main>
     );
 }
