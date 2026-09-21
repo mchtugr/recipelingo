@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from "vitest";
 import type {CookidooClient} from "../cookidoo/client";
+import {CookidooAuthenticationError} from "../cookidoo/errors";
 import {createAndTranslatePublicRecipe, PublicRecipeTranslationError} from "./create-and-translate-public-recipe";
 
 function setup() {
@@ -55,6 +56,27 @@ describe("createAndTranslatePublicRecipe", () => {
     await expect(createAndTranslatePublicRecipe(context.client, options)).rejects.toThrow("POST failed");
     expect(context.getCreatedRecipe).not.toHaveBeenCalled();
     expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+  });
+
+  it("does not create a partial-success error when import requires authentication", async () => {
+    const context = setup();
+    const failure = new CookidooAuthenticationError();
+    context.addPublicRecipeToCookidoo.mockRejectedValueOnce(failure);
+
+    await expect(createAndTranslatePublicRecipe(context.client, options)).rejects.toBe(failure);
+    expect(context.getCreatedRecipe).not.toHaveBeenCalled();
+  });
+
+  it("preserves the created ID when authentication expires after import", async () => {
+    const context = setup();
+    const failure = new CookidooAuthenticationError();
+    context.getCreatedRecipe.mockRejectedValueOnce(failure);
+
+    await expect(createAndTranslatePublicRecipe(context.client, options)).rejects.toMatchObject({
+      createdRecipeId: "created-123",
+      cause: failure,
+    });
+    expect(context.addPublicRecipeToCookidoo).toHaveBeenCalledOnce();
   });
 
   it("preserves the created ID when translation fails and does not roll back", async () => {

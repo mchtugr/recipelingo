@@ -1,4 +1,5 @@
 import { isCookidooHostname } from "./domains";
+import { CookidooAuthenticationError } from "./errors";
 import type {
   CreatedRecipe,
   Instruction,
@@ -156,6 +157,10 @@ export class CookidooClient {
   private assertOk(
       response: Response,
   ): void {
+    if (response.status === 401) {
+      throw new CookidooAuthenticationError();
+    }
+
     if (!response.ok) {
       const status =
           response.statusText

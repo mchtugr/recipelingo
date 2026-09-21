@@ -47,6 +47,7 @@ translator:
 
   error:
     title: Recipe could not be translated
+    authenticationRequired: Sign in to Cookidoo, then return here to try again.
     generic: The recipe could not be translated. Please try again.
     environmentUnavailable: Chrome Translator API is not available in this environment.
     languagePairUnavailable: This language pair is not available in this Chrome version.

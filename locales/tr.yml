@@ -47,6 +47,7 @@ translator:
 
   error:
     title: Tarif çevrilemedi
+    authenticationRequired: Cookidoo'da oturum açın, ardından tekrar denemek için buraya dönün.
     generic: Tarif çevrilemedi. Lütfen tekrar deneyin.
     environmentUnavailable: Bu ortamda Chrome Translator API kullanılamıyor.
     languagePairUnavailable: Bu dil çifti bu Chrome sürümünde kullanılamıyor.

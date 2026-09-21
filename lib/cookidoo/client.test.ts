@@ -7,6 +7,7 @@ import {
 } from "vitest";
 
 import { CookidooClient } from "./client";
+import { CookidooAuthenticationError } from "./errors";
 import type {
   CreatedRecipe,
   Ingredient,
@@ -75,6 +76,28 @@ afterEach(() => {
 });
 
 describe("CookidooClient", () => {
+  it.each([
+    ["import", (client: CookidooClient) => client.addPublicRecipeToCookidoo("r912684")],
+    ["load", (client: CookidooClient) => client.getCreatedRecipe(RECIPE_ID)],
+    ["metadata update", (client: CookidooClient) => client.patchRecipeMetadata(RECIPE_ID, {name: "Translated"})],
+    ["instructions update", (client: CookidooClient) => client.patchRecipeInstructions(RECIPE_ID, [instruction])],
+  ])("maps a 401 response from %s to CookidooAuthenticationError", async (_name, request) => {
+    const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({}, {status: 401}));
+
+    await expect(request(createClient(mockFetch)))
+      .rejects.toBeInstanceOf(CookidooAuthenticationError);
+  });
+
+  it("does not treat 403 as an authentication error", async () => {
+    const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({}, {status: 403}));
+
+    const error = await createClient(mockFetch).getCreatedRecipe(RECIPE_ID).catch(value => value);
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(CookidooAuthenticationError);
+    expect(error).toHaveProperty("message", "Cookidoo request failed: 403");
+  });
+
   describe("addPublicRecipeToCookidoo", () => {
     it("sends the captured import request and returns the Created Recipe ID", async () => {
       const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({
@@ -430,9 +453,9 @@ describe("CookidooClient", () => {
 
       mockFetch.mockResolvedValue(
           createResponse(undefined, {
-            status: 401,
+            status: 500,
             statusText:
-                "Unauthorized",
+                "Internal Server Error",
           }),
       );
 
@@ -444,7 +467,7 @@ describe("CookidooClient", () => {
               RECIPE_ID,
           ),
       ).rejects.toThrow(
-          "Cookidoo request failed: 401 Unauthorized",
+          "Cookidoo request failed: 500 Internal Server Error",
       );
     });
 

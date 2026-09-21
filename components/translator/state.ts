@@ -1,4 +1,5 @@
 import type {CookidooPageInfo} from '../../lib/cookidoo/page.ts';
+import {CookidooAuthenticationError} from '../../lib/cookidoo/errors.ts';
 import {AnnotationMarkerIntegrityError} from '../../lib/translation/translate-prepared-instruction.ts';
 import {RecipeLanguageDetectionError} from '../../lib/translation/detect-recipe-language.ts';
 import {SameTranslationLanguageError} from '../../lib/translation/translate-created-recipe.ts';
@@ -62,6 +63,7 @@ export function getPublicRecipeTranslationInput(
 }
 
 export type TranslatorErrorMessageKey =
+    | 'translator.error.authenticationRequired'
     | 'translator.error.sourceDetectionFailed'
     | 'translator.error.sameLanguage'
     | 'translator.error.annotationIntegrity'
@@ -72,6 +74,10 @@ export type TranslatorErrorMessageKey =
 export function getTranslationErrorMessageKey(
     error: unknown,
 ): TranslatorErrorMessageKey {
+    if (error instanceof CookidooAuthenticationError) {
+        return 'translator.error.authenticationRequired';
+    }
+
     if (error instanceof RecipeLanguageDetectionError) {
         return 'translator.error.sourceDetectionFailed';
     }

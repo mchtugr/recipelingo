@@ -387,14 +387,18 @@ function TranslatorPanel({
                 return;
             }
 
+            const messageKey =
+                getTranslationErrorMessageKey(error);
+
             setTranslation({
                 status: 'error',
 
-                messageKey: isPublic
-                    ? 'translator.error.importFailed'
-                    : getTranslationErrorMessageKey(
-                        error,
-                    ),
+                messageKey: messageKey ===
+                    'translator.error.authenticationRequired'
+                        ? messageKey
+                        : isPublic
+                            ? 'translator.error.importFailed'
+                            : messageKey,
             });
         }
     }
