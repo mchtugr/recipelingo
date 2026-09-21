@@ -36,6 +36,7 @@ import {
     getTargetLanguagePreference,
     setTargetLanguagePreference,
 } from '../lib/translation/preferences';
+import {createCookidooLoginUrl} from '../lib/cookidoo/login';
 
 type TranslationUiState =
     | {
@@ -65,6 +66,10 @@ export interface TranslatorPanelProps {
     onReload?: () => void;
 
     onOpenCreatedRecipe?: (
+        url: string,
+    ) => void;
+
+    onSignIn?: (
         url: string,
     ) => void;
 
@@ -184,6 +189,7 @@ function TranslatorPanel({
                              onCancel,
                              onReload,
                              onOpenCreatedRecipe,
+                             onSignIn,
                              onRunningChange,
                          }: TranslatorPanelProps) {
     const [
@@ -439,6 +445,16 @@ function TranslatorPanel({
                 translation.createdRecipeId,
             )
             : undefined;
+
+    const recipePath = page.type === 'public-recipe'
+        ? `/recipes/recipe/${encodeURIComponent(page.locale)}/${encodeURIComponent(page.recipeId)}`
+        : `/created-recipes/${encodeURIComponent(page.locale)}/${encodeURIComponent(page.recipeId)}`;
+
+    const loginUrl = createCookidooLoginUrl({
+        hostname: page.hostname,
+        locale: page.locale,
+        redirectAfterLogin: recipePath,
+    });
 
     function renderIdle() {
         return (
@@ -810,7 +826,12 @@ function TranslatorPanel({
                 </div>
 
                 <h3 className="ct-state-title">
-                    {i18n.t('translator.error.title')}
+                    {i18n.t(
+                        state.messageKey ===
+                        'translator.error.authenticationRequired'
+                            ? 'translator.error.authenticationTitle'
+                            : 'translator.error.title',
+                    )}
                 </h3>
 
                 <p
@@ -836,7 +857,19 @@ function TranslatorPanel({
             ct-result-actions
           "
                 >
-                    {createdRecipeUrl &&
+                    {state.messageKey ===
+                    'translator.error.authenticationRequired' &&
+                    onSignIn ? (
+                        <button
+                            type="button"
+                            className="primary"
+                            onClick={() => {
+                                onSignIn(loginUrl);
+                            }}
+                        >
+                            {i18n.t('translator.actions.signIn')}
+                        </button>
+                    ) : createdRecipeUrl &&
                     onOpenCreatedRecipe ? (
                         <button
                             type="button"

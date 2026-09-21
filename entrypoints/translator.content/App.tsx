@@ -362,6 +362,11 @@ export default function App() {
                                     recipeUrl,
                                 );
                             }}
+                            onSignIn={(loginUrl) => {
+                                window.location.assign(
+                                    loginUrl,
+                                );
+                            }}
                         />
                     </div>
                 </div>

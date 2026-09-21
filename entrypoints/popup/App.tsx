@@ -156,6 +156,12 @@ function App() {
                         },
                     );
                 }}
+                onSignIn={(url) => {
+                    void browser.tabs.update(
+                        page.tabId,
+                        {url},
+                    );
+                }}
             />
         </main>
     );

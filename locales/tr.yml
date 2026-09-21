@@ -23,6 +23,7 @@ translator:
     retry: Tekrar dene
     reload: Sayfayı yenile
     openCreatedRecipe: Oluşturulan tarifi aç
+    signIn: Cookidoo'ya giriş yap
     open: Cookidoo Translator'ı aç
     closeDialog: Pencereyi kapat
 
@@ -47,6 +48,7 @@ translator:
 
   error:
     title: Tarif çevrilemedi
+    authenticationTitle: Cookidoo oturumu gerekli
     authenticationRequired: Cookidoo'da oturum açın, ardından tekrar denemek için buraya dönün.
     generic: Tarif çevrilemedi. Lütfen tekrar deneyin.
     environmentUnavailable: Bu ortamda Chrome Translator API kullanılamıyor.

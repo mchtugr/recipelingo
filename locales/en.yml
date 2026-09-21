@@ -23,6 +23,7 @@ translator:
     retry: Try again
     reload: Refresh page
     openCreatedRecipe: Open created recipe
+    signIn: Sign in to Cookidoo
     open: Open Cookidoo Translator
     closeDialog: Close dialog
 
@@ -47,6 +48,7 @@ translator:
 
   error:
     title: Recipe could not be translated
+    authenticationTitle: Cookidoo sign-in required
     authenticationRequired: Sign in to Cookidoo, then return here to try again.
     generic: The recipe could not be translated. Please try again.
     environmentUnavailable: Chrome Translator API is not available in this environment.
