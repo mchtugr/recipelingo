@@ -26,7 +26,7 @@ const options = {
   sourceLanguage: "es",
   targetLanguage: "tr",
   translateText: vi.fn(async ({text}: {text: string}) => `TR ${text}`),
-};
+} as const;
 
 describe("createAndTranslatePublicRecipe", () => {
   it("creates once, then translates and saves the new ID", async () => {
@@ -67,6 +67,18 @@ describe("createAndTranslatePublicRecipe", () => {
       expect(error).toBeInstanceOf(PublicRecipeTranslationError);
       expect(error).toMatchObject({createdRecipeId: "created-123", cause: failure});
     }
+    expect(context.addPublicRecipeToCookidoo).toHaveBeenCalledOnce();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
+  it("preserves the created ID when automatic detection finds the target language", async () => {
+    const context = setup();
+    await expect(createAndTranslatePublicRecipe(context.client, {
+      ...options,
+      sourceLanguage: "auto",
+      detectLanguage: vi.fn(async () => ({language: "tr", isReliable: true})),
+    })).rejects.toMatchObject({createdRecipeId: "created-123"});
     expect(context.addPublicRecipeToCookidoo).toHaveBeenCalledOnce();
     expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
     expect(context.patchRecipeInstructions).not.toHaveBeenCalled();

@@ -34,6 +34,7 @@ export async function createAndTranslatePublicRecipe(
       onProgress: options.onProgress,
       onDownloadProgress: options.onDownloadProgress,
       translateText: options.translateText,
+      detectLanguage: options.detectLanguage,
     });
     return {createdRecipeId, translation};
   } catch (cause) {

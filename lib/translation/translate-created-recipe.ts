@@ -9,6 +9,15 @@ import {
 import {prepareInstruction} from "./prepare-instruction";
 import {restoreInstruction} from "./restore-instruction";
 import {translatePreparedInstruction} from "./translate-prepared-instruction";
+import {
+  detectRecipeLanguage,
+  type DetectRecipeLanguage,
+} from "./detect-recipe-language";
+import type {
+  SourceLanguage,
+  SupportedTargetLanguage,
+  TranslationLanguage,
+} from "./languages";
 
 export type TranslateText = (
   request: TranslationRequest,
@@ -17,6 +26,7 @@ export type TranslateText = (
 
 export type RecipeTranslationStage =
   | "loading"
+  | "detecting-language"
   | "translating-metadata"
   | "translating-instructions"
   | "saving-metadata"
@@ -31,11 +41,19 @@ export interface RecipeTranslationProgress {
 
 export interface TranslateCreatedRecipeOptions {
   recipeId: string;
-  sourceLanguage: string;
-  targetLanguage: string;
+  sourceLanguage: SourceLanguage;
+  targetLanguage: SupportedTargetLanguage;
   onDownloadProgress?: (progress: TranslationProgress) => void;
   onProgress?: (progress: RecipeTranslationProgress) => void;
   translateText?: TranslateText;
+  detectLanguage?: DetectRecipeLanguage;
+}
+
+export class SameTranslationLanguageError extends Error {
+  constructor(readonly language: TranslationLanguage) {
+    super(`Source and target languages are both ${language}`);
+    this.name = "SameTranslationLanguageError";
+  }
 }
 
 export interface CreatedRecipeTranslationResult {
@@ -57,19 +75,29 @@ export async function translateCreatedRecipe(
   const {
     recipeId, sourceLanguage, targetLanguage,
     onDownloadProgress, onProgress,
-    translateText = translateWithChrome,
+    translateText = translateWithChrome, detectLanguage,
   } = options;
   const report = (progress: RecipeTranslationProgress) => onProgress?.(progress);
-  const translatePlainText = (text: string): Promise<string> =>
-    text.trim()
-      ? translateText(
-          {sourceLanguage, targetLanguage, text},
-          {onDownloadProgress},
-        )
-      : Promise.resolve(text);
 
   report({stage: "loading"});
   const {recipeContent: recipe} = await client.getCreatedRecipe(recipeId);
+  let effectiveSourceLanguage: TranslationLanguage;
+  if (sourceLanguage === "auto") {
+    report({stage: "detecting-language"});
+    effectiveSourceLanguage = await detectRecipeLanguage(recipe, detectLanguage);
+  } else {
+    effectiveSourceLanguage = sourceLanguage;
+  }
+  if (effectiveSourceLanguage === targetLanguage) {
+    throw new SameTranslationLanguageError(effectiveSourceLanguage);
+  }
+  const translatePlainText = (text: string): Promise<string> =>
+    text.trim()
+      ? translateText(
+          {sourceLanguage: effectiveSourceLanguage, targetLanguage, text},
+          {onDownloadProgress},
+        )
+      : Promise.resolve(text);
 
   report({stage: "translating-metadata"});
   const name = await translatePlainText(recipe.name);
@@ -88,7 +116,7 @@ export async function translateCreatedRecipe(
     const prepared = prepareInstruction(instruction);
     const translated = await translatePreparedInstruction(
       prepared,
-      {sourceLanguage, targetLanguage, onDownloadProgress},
+      {sourceLanguage: effectiveSourceLanguage, targetLanguage, onDownloadProgress},
       translateText,
     );
     instructions.push(restoreInstruction(translated, {targetLanguage}));

@@ -8,6 +8,7 @@ import type {
 } from "../cookidoo/types";
 import { AnnotationMarkerIntegrityError } from "./translate-prepared-instruction";
 import {
+  SameTranslationLanguageError,
   translateCreatedRecipe,
   type TranslateText,
 } from "./translate-created-recipe";
@@ -100,6 +101,58 @@ const base = (
 });
 
 describe("translateCreatedRecipe", () => {
+  it("detects an automatic source after loading and uses the concrete language", async () => {
+    const context = setup(base());
+    const progress: string[] = [];
+    const detectLanguage = vi.fn(async () => ({language: "de", isReliable: true}));
+
+    await translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "auto",
+      targetLanguage: "tr",
+      translateText: context.translateText,
+      detectLanguage,
+      onProgress: ({stage}) => progress.push(stage),
+    });
+
+    expect(detectLanguage).toHaveBeenCalledOnce();
+    expect(progress.slice(0, 3)).toEqual(["loading", "detecting-language", "translating-metadata"]);
+    expect(context.translateText).toHaveBeenCalledWith(
+      expect.objectContaining({sourceLanguage: "de", targetLanguage: "tr"}),
+      expect.any(Object),
+    );
+  });
+
+  it("skips detection for a manual source", async () => {
+    const context = setup(base());
+    const detectLanguage = vi.fn();
+    const progress: string[] = [];
+    await translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "de",
+      targetLanguage: "tr",
+      translateText: context.translateText,
+      detectLanguage,
+      onProgress: ({stage}) => progress.push(stage),
+    });
+    expect(detectLanguage).not.toHaveBeenCalled();
+    expect(progress).not.toContain("detecting-language");
+  });
+
+  it("does not translate or patch when the detected source equals the target", async () => {
+    const context = setup(base());
+    await expect(translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "auto",
+      targetLanguage: "tr",
+      translateText: context.translateText,
+      detectLanguage: vi.fn(async () => ({language: "tr", isReliable: true})),
+    })).rejects.toBeInstanceOf(SameTranslationLanguageError);
+    expect(context.translateText).not.toHaveBeenCalled();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
   it(
       "translates and saves metadata then instructions, rebuilding TTS and MODE",
       async () => {

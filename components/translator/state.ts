@@ -1,5 +1,8 @@
 import type {CookidooPageInfo} from '../../lib/cookidoo/page.ts';
 import {AnnotationMarkerIntegrityError} from '../../lib/translation/translate-prepared-instruction.ts';
+import {RecipeLanguageDetectionError} from '../../lib/translation/detect-recipe-language.ts';
+import {SameTranslationLanguageError} from '../../lib/translation/translate-created-recipe.ts';
+import type {SourceLanguage, SupportedTargetLanguage} from '../../lib/translation/languages.ts';
 
 export interface TranslatorPageContext {
     type: 'public-recipe' | 'created-recipe';
@@ -12,8 +15,8 @@ export interface PublicRecipeTranslationInput {
     hostname: string;
     locale: string;
     publicRecipeId: string;
-    sourceLanguage: string;
-    targetLanguage: 'tr';
+    sourceLanguage: SourceLanguage;
+    targetLanguage: SupportedTargetLanguage;
 }
 
 export function toTranslatorPageContext(
@@ -39,7 +42,8 @@ export function toTranslatorPageContext(
 
 export function getPublicRecipeTranslationInput(
     page: TranslatorPageContext,
-    sourceLanguage: string,
+    sourceLanguage: SourceLanguage,
+    targetLanguage: SupportedTargetLanguage,
 ): PublicRecipeTranslationInput | undefined {
     if (
         page.type !== 'public-recipe' ||
@@ -53,13 +57,21 @@ export function getPublicRecipeTranslationInput(
         locale: page.locale,
         publicRecipeId: page.recipeId,
         sourceLanguage,
-        targetLanguage: 'tr',
+        targetLanguage,
     };
 }
 
 export function getTranslationErrorMessage(
     error: unknown,
 ): string {
+    if (error instanceof RecipeLanguageDetectionError) {
+        return 'Tarif dili güvenilir şekilde algılanamadı. Tarif dilini manuel seçin.';
+    }
+
+    if (error instanceof SameTranslationLanguageError) {
+        return 'Tarif zaten hedef dilde görünüyor. Farklı bir hedef dil seçin.';
+    }
+
     if (
         error instanceof
         AnnotationMarkerIntegrityError

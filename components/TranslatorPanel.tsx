@@ -22,19 +22,17 @@ import {
     getTranslationErrorMessage,
     type TranslatorPageContext,
 } from './translator/state';
-
-const SOURCE_LANGUAGES = [
-    ['de', 'Almanca'],
-    ['en', 'İngilizce'],
-    ['es', 'İspanyolca'],
-    ['fr', 'Fransızca'],
-    ['it', 'İtalyanca'],
-    ['pl', 'Lehçe'],
-    ['pt', 'Portekizce'],
-    ['nl', 'Felemenkçe'],
-    ['cs', 'Çekçe'],
-    ['el', 'Yunanca'],
-] as const;
+import {
+    resolveTargetLanguage,
+    SUPPORTED_TARGET_LANGUAGES,
+    TRANSLATION_LANGUAGES,
+    type SourceLanguage,
+    type SupportedTargetLanguage,
+} from '../lib/translation/languages';
+import {
+    getTargetLanguagePreference,
+    setTargetLanguagePreference,
+} from '../lib/translation/preferences';
 
 type TranslationUiState =
     | {
@@ -84,6 +82,9 @@ function progressMessage(
 
         case 'loading':
             return 'Tarif yükleniyor…';
+
+        case 'detecting-language':
+            return 'Tarif dili algılanıyor…';
 
         case 'translating-metadata':
             return (
@@ -174,7 +175,12 @@ function TranslatorPanel({
     const [
         sourceLanguage,
         setSourceLanguage,
-    ] = useState('');
+    ] = useState<SourceLanguage>('auto');
+
+    const [
+        targetLanguage,
+        setTargetLanguage,
+    ] = useState<SupportedTargetLanguage | null>(null);
 
     const [
         translation,
@@ -195,11 +201,29 @@ function TranslatorPanel({
         onRunningChange,
     ]);
 
+    useEffect(() => {
+        let active = true;
+        setTargetLanguage(null);
+        void getTargetLanguagePreference()
+            .catch(() => undefined)
+            .then((savedTargetLanguage) => {
+                if (active) {
+                    setTargetLanguage(resolveTargetLanguage({
+                        locale: page.locale,
+                        savedTargetLanguage,
+                    }));
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, [page.locale]);
+
     async function handleTranslate() {
         if (
             translation.status !==
             'idle' ||
-            !sourceLanguage
+            targetLanguage === null
         ) {
             return;
         }
@@ -218,6 +242,7 @@ function TranslatorPanel({
             getPublicRecipeTranslationInput(
                 page,
                 sourceLanguage,
+                targetLanguage,
             );
 
         if (
@@ -238,7 +263,7 @@ function TranslatorPanel({
 
         const sharedOptions = {
             sourceLanguage,
-            targetLanguage: 'tr',
+            targetLanguage,
 
             onProgress: (
                 progress:
@@ -366,17 +391,26 @@ function TranslatorPanel({
     function handleSourceChange(
         value: string,
     ) {
-        setSourceLanguage(value);
+        setSourceLanguage(value as SourceLanguage);
 
         setTranslation({
             status: 'idle',
         });
     }
 
+    function handleTargetChange(value: string) {
+        const language = value as SupportedTargetLanguage;
+        setTargetLanguage(language);
+        setTranslation({status: 'idle'});
+        void setTargetLanguagePreference(language).catch(() => {
+            // The in-memory selection remains usable when extension storage fails.
+        });
+    }
+
     const canTranslate =
         translation.status ===
         'idle' &&
-        Boolean(sourceLanguage);
+        targetLanguage !== null;
 
     const createdRecipeUrl =
         (
@@ -425,15 +459,15 @@ function TranslatorPanel({
                                 );
                             }}
                         >
-                            <option value="">
-                                Dil seçin
+                            <option value="auto">
+                                Otomatik algıla
                             </option>
 
-                            {SOURCE_LANGUAGES.map(
-                                ([value, label]) => (
+                            {TRANSLATION_LANGUAGES.map(
+                                ({code, label}) => (
                                     <option
-                                        key={value}
-                                        value={value}
+                                        key={code}
+                                        value={code}
                                     >
                                         {label}
                                     </option>
@@ -451,12 +485,17 @@ function TranslatorPanel({
 
                         <select
                             id="target-language"
-                            value="tr"
-                            disabled
+                            value={targetLanguage ?? ''}
+                            disabled={targetLanguage === null || isRunning}
+                            onChange={(event) => {
+                                handleTargetChange(event.target.value);
+                            }}
                         >
-                            <option value="tr">
-                                Türkçe
-                            </option>
+                            {targetLanguage === null && <option value="">Yükleniyor…</option>}
+                            {SUPPORTED_TARGET_LANGUAGES.map((code) => {
+                                const language = TRANSLATION_LANGUAGES.find((item) => item.code === code);
+                                return <option key={code} value={code}>{language?.label ?? code}</option>;
+                            })}
                         </select>
                     </div>
                 </div>
