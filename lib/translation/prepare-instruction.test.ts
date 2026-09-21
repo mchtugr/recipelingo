@@ -22,6 +22,19 @@ describe("prepareInstruction", () => {
             .toEqual({text: "abc", protectedAnnotations: []});
     });
 
+    it.each(["INGREDIENT", "VOLUME", "MISSE"])(
+        "does not protect or retain source positions for %s annotations",
+        (type) => {
+            const annotation: Annotation = {
+                type,
+                position: {offset: 0, length: 3},
+                data: {forwardCompatible: true},
+            };
+            expect(prepareInstruction(step("abc", [annotation])))
+                .toEqual({text: "abc", protectedAnnotations: []});
+        },
+    );
+
     it("protects one TTS and captures exact source text", () => {
         const annotation = tts(4, 14);
         expect(prepareInstruction(step("Mix 5 Sek./Stufe 5 now", [annotation])))

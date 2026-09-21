@@ -6,12 +6,44 @@ import type {
   Instruction,
   RecipeMetadataPatch,
 } from "../cookidoo/types";
+import { CookidooAuthenticationError } from "../cookidoo/errors";
+import { RecipeLanguageDetectionError } from "./detect-recipe-language";
+import type { SupportedTargetLanguage } from "./languages";
 import { AnnotationMarkerIntegrityError } from "./translate-prepared-instruction";
 import {
   SameTranslationLanguageError,
   translateCreatedRecipe,
   type TranslateText,
 } from "./translate-created-recipe";
+
+const { formatterLanguages } = vi.hoisted(() => ({
+  formatterLanguages: [] as string[],
+}));
+
+vi.mock("./annotation-formatters", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./annotation-formatters")>();
+  const localized = {
+    en: {
+      formatTts: () => "5 sec/speed 5",
+      formatMode: () => "Dough/3 min",
+    },
+    de: {
+      formatTts: () => "5 Sek./Stufe 5",
+      formatMode: () => "Teig/3 Min.",
+    },
+  } as const;
+
+  return {
+    ...actual,
+    getAnnotationFormatter: (language: keyof typeof localized | "tr") => {
+      formatterLanguages.push(language);
+      return language === "tr" ? actual.trAnnotationFormatter : localized[language];
+    },
+  };
+});
+
+const target = (language: "en" | "de"): SupportedTargetLanguage =>
+  language as SupportedTargetLanguage;
 
 const step = (
     text: string,
@@ -702,7 +734,7 @@ describe("translateCreatedRecipe", () => {
   );
 
   it(
-      "does not patch when annotation formatting fails",
+      "does not patch when annotation data is invalid",
       async () => {
         const source = base([
           step(
@@ -710,12 +742,12 @@ describe("translateCreatedRecipe", () => {
               [
                 {
                   type: "MODE",
-                  name: "rice-cooker",
+                  name: "turbo",
                   position: {
                     offset: 4,
                     length: 4,
                   },
-                  data: {},
+                  data: {pulseCount: -1},
                 },
               ],
           ),
@@ -739,7 +771,7 @@ describe("translateCreatedRecipe", () => {
                 },
             ),
         ).rejects.toThrow(
-            "Unsupported MODE annotation: rice-cooker",
+            "Invalid MODE pulse count: -1",
         );
 
         expect(
@@ -833,4 +865,208 @@ describe("translateCreatedRecipe", () => {
         ).toHaveBeenCalledOnce();
       },
   );
+
+  it("covers the complete German to English workflow with localized protected annotations", async () => {
+    formatterLanguages.length = 0;
+    const source = base([
+      step("Zwiebeln zugeben"),
+      step("5 Sek./Stufe 5", [{
+        type: "TTS",
+        position: {offset: 0, length: 14},
+        data: {time: 5, speed: "5", opaque: {keep: true}},
+      }]),
+      step("Teig/3 Min.", [{
+        type: "MODE",
+        name: "dough",
+        position: {offset: 0, length: 11},
+        data: {time: 180, opaque: ["keep"]},
+      }]),
+      step("Zuerst 5 Sek./Stufe 5, dann Teig/3 Min. fertigstellen", [
+        {
+          type: "MODE",
+          name: "dough",
+          position: {offset: 28, length: 11},
+          data: {time: 180, id: "mode-data"},
+        },
+        {
+          type: "TTS",
+          position: {offset: 7, length: 14},
+          data: {time: 5, speed: "5", id: "tts-data"},
+        },
+      ]),
+    ]);
+    source.recipeContent.name = "Zwiebelbrot";
+    source.recipeContent.ingredients[0]!.text = "Mehl";
+    source.recipeContent.ingredients[1]!.text = "Milch";
+    source.recipeContent.hints = "Warm servieren";
+    const snapshot = structuredClone(source);
+    const context = setup(source);
+    const translations = new Map([
+      ["Zwiebelbrot", "Onion bread"],
+      ["Mehl", "Flour"],
+      ["Milch", "Milk"],
+      ["Warm servieren", "Serve warm"],
+      ["Zwiebeln zugeben", "Add onions"],
+      ["<0>", "<0>"],
+      ["Zuerst <0>, dann <1> fertigstellen", "Finish with <0>, then <1>"],
+    ]);
+    const translator: TranslateText = vi.fn(async ({text}) => {
+      const translated = translations.get(text);
+      if (translated === undefined) throw new Error(`Unexpected text: ${text}`);
+      return translated;
+    });
+
+    const result = await translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "de",
+      targetLanguage: target("en"),
+      translateText: translator,
+    });
+
+    expect(formatterLanguages).toEqual(["en"]);
+    expect(translator).toHaveBeenCalledWith(
+      expect.objectContaining({sourceLanguage: "de", targetLanguage: "en"}),
+      expect.any(Object),
+    );
+    expect(context.patchRecipeMetadata).toHaveBeenCalledExactlyOnceWith("r1", {
+      name: "Onion bread",
+      ingredients: [
+        {type: "INGREDIENT", text: "Flour", amount: 100},
+        {type: "INGREDIENT", text: "Milk", extra: {unit: "ml"}},
+      ],
+      hints: "Serve warm",
+    });
+    expect(context.patchRecipeInstructions).toHaveBeenCalledExactlyOnceWith(
+      "r1",
+      result.instructions,
+    );
+    expect(result.instructions.map(({text}) => text)).toEqual([
+      "Add onions",
+      "5 sec/speed 5",
+      "Dough/3 min",
+      "Finish with 5 sec/speed 5, then Dough/3 min",
+    ]);
+    expect(result.instructions.every(({text}) => !/<\d+>/.test(text))).toBe(true);
+    for (const instruction of result.instructions.slice(1)) {
+      for (const annotation of instruction.annotations) {
+        if (!annotation.position) throw new Error("Expected rebuilt annotation position");
+        expect(instruction.text.slice(
+          annotation.position.offset,
+          annotation.position.offset + annotation.position.length,
+        )).toMatch(/^(5 sec\/speed 5|Dough\/3 min)$/);
+      }
+    }
+    expect(result.instructions[3]!.annotations.map(({type, data}) => ({type, data})))
+      .toEqual([
+        {type: "TTS", data: {time: 5, speed: "5", id: "tts-data"}},
+        {type: "MODE", data: {time: 180, id: "mode-data"}},
+      ]);
+    expect(source).toEqual(snapshot);
+  });
+
+  it("selects the German formatter from the target, not the French source", async () => {
+    formatterLanguages.length = 0;
+    const context = setup(base([step("Mélanger 5 sec/vitesse 5", [{
+      type: "TTS",
+      position: {offset: 9, length: 15},
+      data: {time: 5, speed: "5"},
+    }])]));
+    const translator: TranslateText = vi.fn(async ({text}) =>
+      text === "Mélanger <0>" ? "Mischen <0>" : `DE ${text}`,
+    );
+
+    const result = await translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "fr",
+      targetLanguage: target("de"),
+      translateText: translator,
+    });
+
+    expect(formatterLanguages).toEqual(["de"]);
+    expect(translator).toHaveBeenCalledWith(
+      expect.objectContaining({sourceLanguage: "fr", targetLanguage: "de"}),
+      expect.any(Object),
+    );
+    expect(result.instructions[0]!.text).toBe("Mischen 5 Sek./Stufe 5");
+  });
+
+  it("reports the complete automatic-detection progress contract and never translates from auto", async () => {
+    formatterLanguages.length = 0;
+    const context = setup(base());
+    const progress: string[] = [];
+    const detectLanguage = vi.fn(async () => ({language: "de", isReliable: true}));
+
+    await translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "auto",
+      targetLanguage: target("en"),
+      translateText: context.translateText,
+      detectLanguage,
+      onProgress: ({stage}) => progress.push(stage),
+    });
+
+    expect(progress).toEqual([
+      "loading", "detecting-language", "translating-metadata",
+      "translating-instructions", "translating-instructions",
+      "saving-metadata", "saving-instructions", "complete",
+    ]);
+    expect(context.translateText).toHaveBeenCalledWith(
+      expect.objectContaining({sourceLanguage: "de", targetLanguage: "en"}),
+      expect.any(Object),
+    );
+    expect(context.translateText).not.toHaveBeenCalledWith(
+      expect.objectContaining({sourceLanguage: "auto"}),
+      expect.anything(),
+    );
+  });
+
+  it("rejects a manual same-language request before translation or PATCH", async () => {
+    const context = setup(base());
+    await expect(translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "en",
+      targetLanguage: target("en"),
+      translateText: context.translateText,
+    })).rejects.toBeInstanceOf(SameTranslationLanguageError);
+    expect(context.translateText).not.toHaveBeenCalled();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {language: "und", isReliable: true},
+    {language: "", isReliable: true},
+    {language: "de", isReliable: false},
+  ])("stops after loading when automatic detection is not reliable: %j", async (detection) => {
+    const context = setup(base());
+    await expect(translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "auto",
+      targetLanguage: target("en"),
+      translateText: context.translateText,
+      detectLanguage: vi.fn(async () => detection),
+    })).rejects.toBeInstanceOf(RecipeLanguageDetectionError);
+    expect(context.getCreatedRecipe).toHaveBeenCalledOnce();
+    expect(context.translateText).not.toHaveBeenCalled();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
+  it("stops at an authentication failure while loading a Created Recipe", async () => {
+    const context = setup(base());
+    const detection = vi.fn();
+    context.getCreatedRecipe.mockRejectedValueOnce(new CookidooAuthenticationError());
+
+    await expect(translateCreatedRecipe(context.client, {
+      recipeId: "r1",
+      sourceLanguage: "auto",
+      targetLanguage: target("en"),
+      translateText: context.translateText,
+      detectLanguage: detection,
+    })).rejects.toBeInstanceOf(CookidooAuthenticationError);
+    expect(detection).not.toHaveBeenCalled();
+    expect(context.translateText).not.toHaveBeenCalled();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
 });

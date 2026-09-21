@@ -1,7 +1,28 @@
 import {describe, expect, it, vi} from "vitest";
 import type {CookidooClient} from "../cookidoo/client";
 import {CookidooAuthenticationError} from "../cookidoo/errors";
+import {RecipeLanguageDetectionError} from "./detect-recipe-language";
+import type {SupportedTargetLanguage} from "./languages";
 import {createAndTranslatePublicRecipe, PublicRecipeTranslationError} from "./create-and-translate-public-recipe";
+import {SameTranslationLanguageError} from "./translate-created-recipe";
+
+const {formatterLanguages} = vi.hoisted(() => ({formatterLanguages: [] as string[]}));
+
+vi.mock("./annotation-formatters", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./annotation-formatters")>();
+  return {
+    ...actual,
+    getAnnotationFormatter: (language: string) => {
+      formatterLanguages.push(language);
+      return language === "tr" ? actual.trAnnotationFormatter : {
+        formatTts: () => "5 sec/speed 5",
+        formatMode: () => "Dough/3 min",
+      };
+    },
+  };
+});
+
+const english = "en" as SupportedTargetLanguage;
 
 function setup() {
   const events: string[] = [];
@@ -24,13 +45,14 @@ function setup() {
 
 const options = {
   publicRecipeId: "r912684",
-  sourceLanguage: "es",
-  targetLanguage: "tr",
+  sourceLanguage: "de",
+  targetLanguage: english,
   translateText: vi.fn(async ({text}: {text: string}) => `TR ${text}`),
 } as const;
 
 describe("createAndTranslatePublicRecipe", () => {
   it("creates once, then translates and saves the new ID", async () => {
+    formatterLanguages.length = 0;
     const context = setup();
     const progress: string[] = [];
     const result = await createAndTranslatePublicRecipe(context.client, {
@@ -45,9 +67,10 @@ describe("createAndTranslatePublicRecipe", () => {
     expect(progress[0]).toBe("creating");
     expect(progress.at(-1)).toBe("complete");
     expect(options.translateText).toHaveBeenCalledWith(
-      expect.objectContaining({sourceLanguage: "es", targetLanguage: "tr"}),
+      expect.objectContaining({sourceLanguage: "de", targetLanguage: "en"}),
       expect.any(Object),
     );
+    expect(formatterLanguages).toEqual(["en"]);
   });
 
   it("does not translate if creation fails", async () => {
@@ -99,10 +122,44 @@ describe("createAndTranslatePublicRecipe", () => {
     await expect(createAndTranslatePublicRecipe(context.client, {
       ...options,
       sourceLanguage: "auto",
-      detectLanguage: vi.fn(async () => ({language: "tr", isReliable: true})),
-    })).rejects.toMatchObject({createdRecipeId: "created-123"});
+      detectLanguage: vi.fn(async () => ({language: "en", isReliable: true})),
+    })).rejects.toMatchObject({
+      createdRecipeId: "created-123",
+      cause: expect.any(SameTranslationLanguageError),
+    });
     expect(context.addPublicRecipeToCookidoo).toHaveBeenCalledOnce();
     expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
     expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
+  it("preserves the created ID and detection cause when detection fails after import", async () => {
+    const context = setup();
+    await expect(createAndTranslatePublicRecipe(context.client, {
+      ...options,
+      sourceLanguage: "auto",
+      detectLanguage: vi.fn(async () => ({language: "und", isReliable: false})),
+    })).rejects.toMatchObject({
+      createdRecipeId: "created-123",
+      cause: expect.any(RecipeLanguageDetectionError),
+    });
+    expect(context.addPublicRecipeToCookidoo).toHaveBeenCalledOnce();
+    expect(context.patchRecipeMetadata).not.toHaveBeenCalled();
+    expect(context.patchRecipeInstructions).not.toHaveBeenCalled();
+  });
+
+  it("reports creating before the Created Recipe workflow stages", async () => {
+    const context = setup();
+    const progress: string[] = [];
+    await createAndTranslatePublicRecipe(context.client, {
+      ...options,
+      sourceLanguage: "auto",
+      detectLanguage: vi.fn(async () => ({language: "de", isReliable: true})),
+      onProgress: ({stage}) => progress.push(stage),
+    });
+    expect(progress).toEqual([
+      "creating", "loading", "detecting-language", "translating-metadata",
+      "translating-instructions", "translating-instructions",
+      "saving-metadata", "saving-instructions", "complete",
+    ]);
   });
 });

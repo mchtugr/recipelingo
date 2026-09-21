@@ -3,6 +3,7 @@ import type {ModeAnnotation, TtsAnnotation} from "../cookidoo/types";
 import type {TranslatedPreparedInstruction} from "./translate-prepared-instruction";
 import {restoreInstruction} from "./restore-instruction";
 import {
+  deAnnotationFormatter,
   trAnnotationFormatter,
   type AnnotationFormatter,
 } from "./annotation-formatters";
@@ -71,6 +72,33 @@ describe("restoreInstruction", () => {
     );
   });
 
+  it.each([
+    ["tr", "5 sn/hız 5"],
+    ["en", "5 sec/speed 5"],
+    ["de", "5 Sek./Stufe 5"],
+  ])("preserves annotation data when restoring %s display text", (_language, display) => {
+    const input: TranslatedPreparedInstruction = {
+      text: "Before <0> after",
+      protectedAnnotations: [tts("<0>", {
+        time: 5,
+        speed: "5",
+        forwardCompatible: {nested: [1, 2, 3]},
+      })],
+    };
+    const originalData = structuredClone(input.protectedAnnotations[0]!.annotation.data);
+    const result = restoreInstruction(input, {
+      formatTts: () => display,
+      formatMode: () => "unused",
+    });
+
+    expect(result.annotations[0]!.data).toEqual(originalData);
+    expect(result.annotations[0]!.position).toEqual({
+      offset: "Before ".length,
+      length: display.length,
+    });
+    expect(result.text).toBe(`Before ${display} after`);
+  });
+
   it("updates later offsets after earlier replacement", () => {
     const result = restore({text: "Önce <0>, ardından <1> uygulayın.",
       protectedAnnotations: [tts("<0>"), mode("<1>")]});
@@ -104,9 +132,24 @@ describe("restoreInstruction", () => {
       .toEqual({type: "STEP", text: "Plain text", annotations: []});
   });
 
-  it("propagates formatter errors", () => {
-    expect(() => restore({text: "<0>", protectedAnnotations: [mode("<0>", "rice-cooker")]}))
-      .toThrow("Unsupported MODE annotation: rice-cooker");
+  it("uses the source mode name as a safe fallback", () => {
+    expect(restore({text: "<0>", protectedAnnotations: [mode("<0>", "rice-cooker")]}).text)
+      .toBe("rice-cooker/3 dk");
+  });
+
+  it.each([
+    [trAnnotationFormatter, "5 sn/hız 5 sonra Hamur/3 dk", [10, 10]],
+    [deAnnotationFormatter, "5 Sek./Stufe 5 sonra Teig/3 Min.", [14, 11]],
+  ] as const)("rebuilds multiple positions for different localized lengths", (formatter, text, lengths) => {
+    const result = restoreInstruction({
+      text: "<0> sonra <1>",
+      protectedAnnotations: [tts("<0>"), mode("<1>")],
+    }, formatter);
+    expect(result.text).toBe(text);
+    expect(result.annotations.map(({position}) => position)).toEqual([
+      {offset: 0, length: lengths[0]},
+      {offset: lengths[0] + " sonra ".length, length: lengths[1]},
+    ]);
   });
 
   it("restores annotations using marker position rather than metadata order", () => {
