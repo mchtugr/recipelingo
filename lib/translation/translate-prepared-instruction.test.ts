@@ -9,6 +9,7 @@ const options = {sourceLanguage: "de", targetLanguage: "tr"};
 const protectedAnnotation: PreparedInstruction["protectedAnnotations"][number] = {
   marker: "<0>",
   originalText: "5 Sek.",
+  glyphs: [],
   annotation: {
     type: "TTS", position: {offset: 4, length: 6},
     data: {speed: "1"},

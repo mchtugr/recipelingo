@@ -7,10 +7,12 @@ import {
     containsAnnotationMarker,
     createAnnotationMarker,
 } from "./markers";
+import {extractCookidooGlyphs} from "./cookidoo-glyphs";
 
 export interface ProtectedAnnotation {
     marker: string;
     originalText: string;
+    glyphs: string[];
     annotation: ProtectedCookingAnnotation;
 }
 
@@ -67,23 +69,25 @@ export function prepareInstruction(
         }
     }
 
-    const protectedAnnotations = annotations.map((annotation, index) => ({
+    const protectedAnnotations = annotations.map((annotation, index) => {
+        const originalText = instruction.text.slice(
+            annotation.position.offset,
+            annotation.position.offset + annotation.position.length,
+        );
+        return {
             marker:
                 createAnnotationMarker(
                     index,
                 ),
-
-            originalText: instruction.text.slice(
-                annotation.position.offset,
-                annotation.position.offset + annotation.position.length,
-            ),
+            originalText,
+            glyphs: extractCookidooGlyphs(originalText),
 
             annotation:
                 structuredClone(
                     annotation,
                 ),
-        }),
-    );
+        };
+    });
 
     let text = instruction.text;
     for (let i = protectedAnnotations.length - 1; i >= 0; i--) {

@@ -1,8 +1,13 @@
 import type {ModeAnnotation, TtsAnnotation} from "../../cookidoo/types";
 
 export interface AnnotationFormatter {
-  formatTts(annotation: TtsAnnotation): string;
-  formatMode(annotation: ModeAnnotation): string;
+  formatTts(annotation: TtsAnnotation, context?: AnnotationFormatContext): string;
+  formatMode(annotation: ModeAnnotation, context?: AnnotationFormatContext): string;
+}
+
+export interface AnnotationFormatContext {
+  sourceText: string;
+  glyphs: readonly string[];
 }
 
 export interface AnnotationMessages {

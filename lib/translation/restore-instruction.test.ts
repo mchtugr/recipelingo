@@ -2,14 +2,16 @@ import {describe, expect, it} from "vitest";
 import type {ModeAnnotation, TtsAnnotation} from "../cookidoo/types";
 import type {TranslatedPreparedInstruction} from "./translate-prepared-instruction";
 import {restoreInstruction} from "./restore-instruction";
+import {prepareInstruction} from "./prepare-instruction";
 import {
   deAnnotationFormatter,
+  enAnnotationFormatter,
   trAnnotationFormatter,
   type AnnotationFormatter,
 } from "./annotation-formatters";
 
 const tts = (marker: string, data: TtsAnnotation["data"] = {time: 5, speed: "5"}) => ({
-  marker, originalText: "source", annotation: {
+  marker, originalText: "source", glyphs: [], annotation: {
     type: "TTS" as const, position: {offset: 99, length: 6}, data,
     extra: {keep: true},
   },
@@ -19,7 +21,7 @@ const mode = (
   name = "dough",
   data: ModeAnnotation["data"] = {time: 180},
 ) => ({
-  marker, originalText: "source", annotation: {
+  marker, originalText: "source", glyphs: [], annotation: {
     type: "MODE" as const, name, position: {offset: 55, length: 6},
     data,
   },
@@ -28,6 +30,30 @@ const restore = (input: TranslatedPreparedInstruction) =>
   restoreInstruction(input, trAnnotationFormatter);
 
 describe("restoreInstruction", () => {
+  it.each([
+    ["Hamur \uE001/10 sn", "MODE", "dough", {time: 10}, "Dough \uE001/10 sec", "Teig \uE001/10 Sek."],
+    ["Turbo \uE00B/2 sn", "MODE", "turbo", {time: 2}, "Turbo \uE00B/2 sec", "Turbo \uE00B/2 Sek."],
+    ["Karıştırma \uE01E/30 sn", "MODE", "blend", {time: 30}, "blend \uE01E/30 sec", "blend \uE01E/30 Sek."],
+    ["Isıtma \uE019/65°C", "MODE", "warm_up", {}, "warm_up \uE019", "warm_up \uE019"],
+    ["Pilav Pişirici \uE00D", "MODE", "rice_cooker", {}, "rice_cooker \uE00D", "rice_cooker \uE00D"],
+    ["Yeni Mod \uE027/5 dk", "MODE", "future_mode", {time: 300}, "future_mode \uE027/5 min", "future_mode \uE027/5 Min."],
+    ["1 sn/hız \uE002", "TTS", "", {time: 1, speed: "soft"}, "1 sec/speed \uE002", "1 Sek./Stufe \uE002"],
+    ["1 dk/\uE003/hız 8.5", "TTS", "", {time: 60, direction: "CCW", speed: "8.5"}, "1 min/\uE003/speed 8.5", "1 Min./\uE003/Stufe 8.5"],
+    ["1 sn/\uE003/hız \uE002", "TTS", "", {time: 1, direction: "CCW", speed: "soft"}, "1 sec/\uE003/speed \uE002", "1 Sek./\uE003/Stufe \uE002"],
+  ] as const)("preserves source glyphs in %s", (source, type, name, data, english, german) => {
+    const annotation = type === "MODE"
+      ? {type, name, data, position: {offset: 0, length: source.length}}
+      : {type, data, position: {offset: 0, length: source.length}};
+    const prepared = prepareInstruction({type: "STEP", text: source, annotations: [annotation]});
+    expect(prepared.text).toBe("<0>");
+    for (const [formatter, expected] of [[enAnnotationFormatter, english], [deAnnotationFormatter, german]] as const) {
+      const result = restoreInstruction(prepared, formatter);
+      expect(result.text).toBe(expected);
+      expect(result.annotations[0]?.position).toEqual({offset: 0, length: expected.length});
+      expect(result.annotations[0]?.data).toEqual(data);
+    }
+  });
+
   it("restores TTS with new position, preserved data and independent clones", () => {
     const input = {text: "Soğanları ekleyin ve <0> doğrayın.",
       protectedAnnotations: [tts("<0>")], metadata: {type: "STEP" as const, missedUsages: ["x"]}};
@@ -162,6 +188,7 @@ describe("restoreInstruction", () => {
         {
           marker: "<1>",
           originalText: "Teig/3 Min.",
+          glyphs: [],
           annotation: {
             type: "MODE",
             name: "dough",
@@ -177,6 +204,7 @@ describe("restoreInstruction", () => {
         {
           marker: "<0>",
           originalText: "5 Sek./Stufe 5",
+          glyphs: [],
           annotation: {
             type: "TTS",
             position: {

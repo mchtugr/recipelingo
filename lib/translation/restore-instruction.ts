@@ -48,6 +48,8 @@ export function restoreInstruction(
         const {
             marker,
             annotation,
+            originalText,
+            glyphs,
         } = item;
 
         const offset = text.indexOf(marker);
@@ -55,8 +57,8 @@ export function restoreInstruction(
             throw new Error(`Expected exactly one annotation marker: ${marker}`);
         }
         const display = annotation.type === "TTS"
-            ? formatter.formatTts(annotation)
-            : formatter.formatMode(annotation);
+            ? formatter.formatTts(annotation, {sourceText: originalText, glyphs})
+            : formatter.formatMode(annotation, {sourceText: originalText, glyphs});
         text = text.slice(0, offset) + display + text.slice(offset + marker.length);
         annotations.push({
             ...structuredClone(annotation),

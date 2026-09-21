@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import type {Annotation, Instruction} from "../cookidoo/types";
 import {prepareInstruction} from "./prepare-instruction";
+import {extractCookidooGlyphs} from "./cookidoo-glyphs";
 
 const tts = (offset: number, length: number): Annotation => ({
     type: "TTS", position: {offset, length},
@@ -17,6 +18,16 @@ const step = (text: string, annotations: Annotation[] = []): Instruction => ({
 });
 
 describe("prepareInstruction", () => {
+    it("extracts only BMP private-use glyphs in source order", () => {
+        expect(extractCookidooGlyphs("😀 \uE001 text \uE002 \uE001 ©"))
+            .toEqual(["\uE001", "\uE002", "\uE001"]);
+        const source = "\uE001 and \uE002";
+        const result = prepareInstruction(step(source, [tts(0, source.length)]));
+        expect(result.protectedAnnotations[0]).toMatchObject({
+            originalText: source,
+            glyphs: ["\uE001", "\uE002"],
+        });
+    });
     it("leaves text unchanged without protected annotations", () => {
         expect(prepareInstruction(step("abc", [ingredient(0, 2)])))
             .toEqual({text: "abc", protectedAnnotations: []});
@@ -40,7 +51,7 @@ describe("prepareInstruction", () => {
         expect(prepareInstruction(step("Mix 5 Sek./Stufe 5 now", [annotation])))
             .toEqual({
                 text: "Mix <0> now", protectedAnnotations: [{
-                    marker: "<0>", originalText: "5 Sek./Stufe 5", annotation,
+                    marker: "<0>", originalText: "5 Sek./Stufe 5", glyphs: [], annotation,
                 }]
             });
     });

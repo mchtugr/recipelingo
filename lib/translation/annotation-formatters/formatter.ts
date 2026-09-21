@@ -25,30 +25,35 @@ function formatTemperature(temperature: Temperature): string {
 
 export function createAnnotationFormatter(messages: AnnotationMessages): AnnotationFormatter {
   return {
-    formatTts(annotation) {
+    formatTts(annotation, context) {
       const {time, temperature, direction, speed} = annotation.data;
       const parts: string[] = [];
+      const glyphs = context?.glyphs ?? [];
+      let glyphIndex = 0;
       if (time !== undefined) parts.push(formatTime(time, messages));
       if (temperature !== undefined) parts.push(formatTemperature(temperature));
-      if (direction === "CCW") parts.push(messages.labels.reverse);
+      if (direction === "CCW") parts.push(glyphs[glyphIndex++] ?? messages.labels.reverse);
       else if (direction !== undefined && direction !== "CW") {
         throw new Error(`Unsupported TTS direction: ${direction}`);
       }
       if (speed !== undefined) {
         if (!speed.trim()) throw new Error("Invalid TTS speed");
-        parts.push(`${messages.labels.speed} ${speed}`);
+        const speedValue = speed === "soft" ? glyphs[glyphIndex++] ?? speed : speed;
+        parts.push(`${messages.labels.speed} ${speedValue}`);
       }
+      if (glyphIndex < glyphs.length) parts.push(...glyphs.slice(glyphIndex));
       if (parts.length === 0) throw new Error("TTS annotation has no display parameters");
       return parts.join("/");
     },
 
-    formatMode(annotation) {
+    formatMode(annotation, context) {
       const displayName = annotation.name === "dough"
         ? messages.modes.dough
         : annotation.name === "turbo"
           ? messages.modes.turbo
           : annotation.name;
-      const parts = [displayName];
+      const glyphs = context?.glyphs ?? [];
+      const parts = [`${displayName}${glyphs.length ? ` ${glyphs.join(" ")}` : ""}`];
       if (annotation.data.time !== undefined) parts.push(formatTime(annotation.data.time, messages));
       if (annotation.name === "turbo" && annotation.data.pulseCount !== undefined) {
         parts.push(messages.formatCount(validateNonNegativeInteger(
