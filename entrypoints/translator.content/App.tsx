@@ -4,6 +4,7 @@ import {
     useRef,
     useState,
 } from 'react';
+import { i18n } from '#i18n';
 
 import TranslatorPanel from '~/components/TranslatorPanel';
 import {
@@ -259,8 +260,8 @@ export default function App() {
                 ref={fab}
                 type="button"
                 className="ct-fab"
-                aria-label="Cookidoo Translator'ı aç"
-                title="Cookidoo Translator"
+                aria-label={i18n.t('translator.actions.open')}
+                title={i18n.t('translator.title')}
                 onClick={() =>
                     setOpen(true)
                 }
@@ -320,13 +321,13 @@ export default function App() {
                     >
                         <header className="ct-header">
                             <h2 id="ct-dialog-title">
-                                Cookidoo Translator
+                                {i18n.t('translator.title')}
                             </h2>
 
                             <button
                                 type="button"
                                 className="ct-close"
-                                aria-label="Pencereyi kapat"
+                                aria-label={i18n.t('translator.actions.closeDialog')}
                                 disabled={running}
                                 onClick={close}
                             >

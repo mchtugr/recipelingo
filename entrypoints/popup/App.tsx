@@ -2,6 +2,7 @@ import {
     useEffect,
     useState,
 } from 'react';
+import { i18n } from '#i18n';
 
 import {
     browser,
@@ -44,8 +45,7 @@ function App() {
                 if (active) {
                     setPage({
                         status: 'error',
-                        message:
-                            'Etkin sekme kontrol edilemedi.',
+                        messageKey: 'popup.activeTabError',
                     });
                 }
             });
@@ -59,11 +59,11 @@ function App() {
         return (
             <main className="ct-panel">
                 <h1>
-                    Cookidoo Translator
+                    {i18n.t('translator.title')}
                 </h1>
 
                 <p role="status">
-                    Tarif kontrol ediliyor…
+                    {i18n.t('popup.checking')}
                 </p>
             </main>
         );
@@ -73,12 +73,11 @@ function App() {
         return (
             <main className="ct-panel">
                 <h1>
-                    Cookidoo Translator
+                    {i18n.t('translator.title')}
                 </h1>
 
                 <p>
-                    Bir Cookidoo tarif
-                    sayfası açın.
+                    {i18n.t('popup.openRecipe')}
                 </p>
             </main>
         );
@@ -88,13 +87,11 @@ function App() {
         return (
             <main className="ct-panel">
                 <h1>
-                    Cookidoo Translator
+                    {i18n.t('translator.title')}
                 </h1>
 
                 <p>
-                    Cookidoo Translator'ı
-                    kullanmak için Cookidoo'da
-                    bir tarif açın.
+                    {i18n.t('popup.unsupportedPage')}
                 </p>
             </main>
         );
@@ -104,14 +101,14 @@ function App() {
         return (
             <main className="ct-panel">
                 <h1>
-                    Cookidoo Translator
+                    {i18n.t('translator.title')}
                 </h1>
 
                 <p
                     role="alert"
                     className="error"
                 >
-                    {page.message}
+                    {i18n.t(page.messageKey)}
                 </p>
             </main>
         );
@@ -126,12 +123,11 @@ function App() {
         return (
             <main className="ct-panel">
                 <h1>
-                    Cookidoo Translator
+                    {i18n.t('translator.title')}
                 </h1>
 
                 <p role="alert">
-                    Tarif bilgileri
-                    okunamadı.
+                    {i18n.t('popup.recipeInfoUnavailable')}
                 </p>
             </main>
         );
@@ -140,7 +136,7 @@ function App() {
     return (
         <main className="ct-app">
             <h1>
-                Cookidoo Translator
+                {i18n.t('translator.title')}
             </h1>
 
             <TranslatorPanel

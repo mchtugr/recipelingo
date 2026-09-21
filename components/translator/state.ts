@@ -61,25 +61,30 @@ export function getPublicRecipeTranslationInput(
     };
 }
 
-export function getTranslationErrorMessage(
+export type TranslatorErrorMessageKey =
+    | 'translator.error.sourceDetectionFailed'
+    | 'translator.error.sameLanguage'
+    | 'translator.error.annotationIntegrity'
+    | 'translator.error.languagePairUnavailable'
+    | 'translator.error.importFailed'
+    | 'translator.error.generic';
+
+export function getTranslationErrorMessageKey(
     error: unknown,
-): string {
+): TranslatorErrorMessageKey {
     if (error instanceof RecipeLanguageDetectionError) {
-        return 'Tarif dili güvenilir şekilde algılanamadı. Tarif dilini manuel seçin.';
+        return 'translator.error.sourceDetectionFailed';
     }
 
     if (error instanceof SameTranslationLanguageError) {
-        return 'Tarif zaten hedef dilde görünüyor. Farklı bir hedef dil seçin.';
+        return 'translator.error.sameLanguage';
     }
 
     if (
         error instanceof
         AnnotationMarkerIntegrityError
     ) {
-        return (
-            'Çeviri sırasında tarifin cihaz ayarları ' +
-            'güvenli şekilde korunamadı. Tarif kaydedilmedi.'
-        );
+        return 'translator.error.annotationIntegrity';
     }
 
     if (
@@ -93,13 +98,8 @@ export function getTranslationErrorMessage(
             )
         )
     ) {
-        return (
-            'Bu dil çifti bu Chrome sürümünde ' +
-            'kullanılamıyor.'
-        );
+        return 'translator.error.languagePairUnavailable';
     }
 
-    return (
-        'Tarif çevrilemedi. Lütfen tekrar deneyin.'
-    );
+    return 'translator.error.generic';
 }

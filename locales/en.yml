@@ -1,0 +1,78 @@
+manifest:
+  name: Cookidoo Translator
+  description: Translate Cookidoo recipes while preserving Guided Cooking settings.
+
+translator:
+  title: Cookidoo Translator
+
+  intro:
+    createdRecipe: This Created Recipe can be translated.
+    publicRecipe: This Cookidoo recipe can be added to your recipes and translated.
+
+  fields:
+    sourceLanguage: Recipe language
+    targetLanguage: Target language
+    autoDetect: Detect automatically
+    loading: Loading…
+
+  actions:
+    translate: Translate recipe
+    createAndTranslate: Create and translate
+    cancel: Cancel
+    close: Close
+    retry: Try again
+    reload: Refresh page
+    openCreatedRecipe: Open created recipe
+    open: Open Cookidoo Translator
+    closeDialog: Close dialog
+
+  progress:
+    title: Translating recipe…
+    creating: Creating recipe…
+    loading: Loading recipe…
+    detectingLanguage: Detecting recipe language…
+    translatingMetadata: Translating recipe information…
+    translatingInstructions: Translating steps…
+    savingMetadata: Saving recipe information…
+    savingInstructions: Saving steps…
+    complete: Finishing translation…
+    preparingModel: Preparing language model…
+    keepOpen: Keep this window open until translation is complete.
+    label: Translation progress
+    labelPercent: 'Translation progress: {percent}%'
+
+  success:
+    title: Recipe translated successfully
+    description: The translation was saved to Cookidoo.
+
+  error:
+    title: Recipe could not be translated
+    generic: The recipe could not be translated. Please try again.
+    environmentUnavailable: Chrome Translator API is not available in this environment.
+    languagePairUnavailable: This language pair is not available in this Chrome version.
+    importFailed: The recipe could not be added to Cookidoo. Please try again.
+    createdRecipePartial: The Created Recipe was created, but translation or saving may not have completed.
+    sourceDetectionFailed: The recipe language could not be detected reliably. Select the recipe language manually.
+    sameLanguage: The recipe already appears to be in the target language. Select a different target language.
+    annotationIntegrity: The appliance settings could not be preserved safely during translation. The recipe was not saved.
+
+popup:
+  checking: Checking recipe…
+  openRecipe: Open a Cookidoo recipe.
+  unsupportedPage: Cookidoo Translator can only be used on a Cookidoo recipe page.
+  activeTabError: The active tab could not be checked.
+  activeTabUnavailable: The active tab could not be accessed.
+  recipeInfoUnavailable: Recipe information could not be read.
+
+languages:
+  tr: Turkish
+  de: German
+  en: English
+  es: Spanish
+  fr: French
+  it: Italian
+  pl: Polish
+  pt: Portuguese
+  nl: Dutch
+  cs: Czech
+  el: Greek

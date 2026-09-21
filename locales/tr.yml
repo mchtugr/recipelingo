@@ -1,0 +1,78 @@
+manifest:
+  name: Cookidoo Translator
+  description: Guided Cooking ayarlarını koruyarak Cookidoo tariflerini çevirin.
+
+translator:
+  title: Cookidoo Translator
+
+  intro:
+    createdRecipe: Bu Created Recipe çevrilebilir.
+    publicRecipe: Bu Cookidoo tarifi kişisel tariflerinize eklenip çevrilebilir.
+
+  fields:
+    sourceLanguage: Tarif dili
+    targetLanguage: Hedef dil
+    autoDetect: Otomatik algıla
+    loading: Yükleniyor…
+
+  actions:
+    translate: Tarifi çevir
+    createAndTranslate: Oluştur ve çevir
+    cancel: İptal
+    close: Kapat
+    retry: Tekrar dene
+    reload: Sayfayı yenile
+    openCreatedRecipe: Oluşturulan tarifi aç
+    open: Cookidoo Translator'ı aç
+    closeDialog: Pencereyi kapat
+
+  progress:
+    title: Tarif çevriliyor…
+    creating: Tarif oluşturuluyor…
+    loading: Tarif yükleniyor…
+    detectingLanguage: Tarif dili algılanıyor…
+    translatingMetadata: Tarif bilgileri çevriliyor…
+    translatingInstructions: Adımlar çevriliyor…
+    savingMetadata: Tarif bilgileri kaydediliyor…
+    savingInstructions: Adımlar kaydediliyor…
+    complete: Çeviri tamamlanıyor…
+    preparingModel: Dil modeli hazırlanıyor…
+    keepOpen: Çeviri tamamlanana kadar bu pencereyi açık tutun.
+    label: Çeviri ilerlemesi
+    labelPercent: 'Çeviri ilerlemesi: yüzde {percent}'
+
+  success:
+    title: Tarif başarıyla çevrildi
+    description: Çeviri Cookidoo'ya kaydedildi.
+
+  error:
+    title: Tarif çevrilemedi
+    generic: Tarif çevrilemedi. Lütfen tekrar deneyin.
+    environmentUnavailable: Bu ortamda Chrome Translator API kullanılamıyor.
+    languagePairUnavailable: Bu dil çifti bu Chrome sürümünde kullanılamıyor.
+    importFailed: Tarif Cookidoo'ya eklenemedi. Lütfen tekrar deneyin.
+    createdRecipePartial: Created Recipe oluşturuldu ancak çeviri veya kaydetme tamamlanmamış olabilir.
+    sourceDetectionFailed: Tarif dili güvenilir şekilde algılanamadı. Tarif dilini manuel seçin.
+    sameLanguage: Tarif zaten hedef dilde görünüyor. Farklı bir hedef dil seçin.
+    annotationIntegrity: Çeviri sırasında tarifin cihaz ayarları güvenli şekilde korunamadı. Tarif kaydedilmedi.
+
+popup:
+  checking: Tarif kontrol ediliyor…
+  openRecipe: Bir Cookidoo tarif sayfası açın.
+  unsupportedPage: Cookidoo Translator'ı kullanmak için Cookidoo'da bir tarif açın.
+  activeTabError: Etkin sekme kontrol edilemedi.
+  activeTabUnavailable: Etkin sekmeye erişilemedi.
+  recipeInfoUnavailable: Tarif bilgileri okunamadı.
+
+languages:
+  tr: Türkçe
+  de: Almanca
+  en: İngilizce
+  es: İspanyolca
+  fr: Fransızca
+  it: İtalyanca
+  pl: Lehçe
+  pt: Portekizce
+  nl: Felemenkçe
+  cs: Çekçe
+  el: Yunanca

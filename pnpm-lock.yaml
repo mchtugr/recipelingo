@@ -24,6 +24,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.3.0(@types/react@19.3.0)
+      '@wxt-dev/i18n':
+        specifier: ^0.2.7
+        version: 0.2.7(wxt@0.21.4(eslint@9.39.4(jiti@2.7.0))(rolldown@1.2.9)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(web-ext@10.6.0(jiti@2.7.0)))
       '@wxt-dev/module-react':
         specifier: ^1.1.5
         version: 1.2.2(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(wxt@0.21.4(eslint@9.39.4(jiti@2.7.0))(rolldown@1.2.9)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(web-ext@10.6.0(jiti@2.7.0)))
@@ -380,6 +383,14 @@ packages:
 
   '@wxt-dev/browser@0.3.0':
     resolution: {integrity: sha512-GlqW+uqJP8s/pwqfR1buA2DckxC/mttCudDKBmop5iCerTtPZ6emd9bOAEpUdp3yIVdQCBfHT6iIRKPZsqddjw==}
+
+  '@wxt-dev/i18n@0.2.7':
+    resolution: {integrity: sha512-aBhWJ2GFMtjyWK8Qcq83pf7WA88Iu6SwRWdZl7TrDM6lAC0RV5uLuFUrX72GwO1ZuZHuN80FQVVGnK1MHDTjcA==}
+    peerDependencies:
+      wxt: '>=0.19.7'
+    peerDependenciesMeta:
+      wxt:
+        optional: true
 
   '@wxt-dev/module-react@1.2.2':
     resolution: {integrity: sha512-+lRLi1r9dAXpLySWSIWHLJ1h/nFzR20iQnx3RNrKyA6oJg4+ClOluVXozHjfPg9Okfy/umtffiOopGayASrg6w==}
@@ -2028,8 +2039,6 @@ packages:
 
 snapshots:
 
-  '@types/dom-chromium-ai@0.0.17': {}
-
   '@1natsu/wait-element@4.2.0':
     dependencies:
       defu: 6.1.7
@@ -2240,6 +2249,8 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
+  '@types/dom-chromium-ai@0.0.17': {}
+
   '@types/estree@1.0.9': {}
 
   '@types/filesystem@0.0.36':
@@ -2297,6 +2308,15 @@ snapshots:
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
+
+  '@wxt-dev/i18n@0.2.7(wxt@0.21.4(eslint@9.39.4(jiti@2.7.0))(rolldown@1.2.9)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(web-ext@10.6.0(jiti@2.7.0)))':
+    dependencies:
+      '@wxt-dev/browser': 0.3.0
+      chokidar: 5.0.0
+      confbox: 0.2.4
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      wxt: 0.21.4(eslint@9.39.4(jiti@2.7.0))(rolldown@1.2.9)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(web-ext@10.6.0(jiti@2.7.0))
 
   '@wxt-dev/module-react@1.2.2(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(wxt@0.21.4(eslint@9.39.4(jiti@2.7.0))(rolldown@1.2.9)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0))(web-ext@10.6.0(jiti@2.7.0)))':
     dependencies:

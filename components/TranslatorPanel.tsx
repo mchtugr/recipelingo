@@ -2,6 +2,7 @@ import {
     useEffect,
     useState,
 } from 'react';
+import { i18n } from '#i18n';
 
 import {
     CookidooClient,
@@ -19,7 +20,8 @@ import {
 
 import {
     getPublicRecipeTranslationInput,
-    getTranslationErrorMessage,
+    getTranslationErrorMessageKey,
+    type TranslatorErrorMessageKey,
     type TranslatorPageContext,
 } from './translator/state';
 import {
@@ -28,6 +30,7 @@ import {
     TRANSLATION_LANGUAGES,
     type SourceLanguage,
     type SupportedTargetLanguage,
+    type TranslationLanguage,
 } from '../lib/translation/languages';
 import {
     getTargetLanguagePreference,
@@ -50,7 +53,7 @@ type TranslationUiState =
 }
     | {
     status: 'error';
-    message: string;
+    messageKey: TranslatorErrorMessageKey;
     createdRecipeId?: string;
 };
 
@@ -70,56 +73,67 @@ export interface TranslatorPanelProps {
     ) => void;
 }
 
+export function appendInstructionProgress(
+    message: string,
+    current?: number,
+    total?: number,
+): string {
+    return current !== undefined &&
+        total !== undefined &&
+        current > 0
+        ? `${message} ${current} / ${total}`
+        : message;
+}
+
 function progressMessage(
     progress:
     PublicRecipeTranslationProgress,
 ): string {
     switch (progress.stage) {
         case 'creating':
-            return (
-                'Created Recipe oluşturuluyor…'
-            );
+            return i18n.t('translator.progress.creating');
 
         case 'loading':
-            return 'Tarif yükleniyor…';
+            return i18n.t('translator.progress.loading');
 
         case 'detecting-language':
-            return 'Tarif dili algılanıyor…';
+            return i18n.t('translator.progress.detectingLanguage');
 
         case 'translating-metadata':
-            return (
-                'Tarif bilgileri çevriliyor…'
-            );
+            return i18n.t('translator.progress.translatingMetadata');
 
         case 'translating-instructions': {
-            const count =
-                progress.current !== undefined &&
-                progress.total !== undefined &&
-                progress.current > 0
-                    ? ` ${progress.current} / ${progress.total}`
-                    : '';
-
-            return (
-                `Adımlar çevriliyor…${count}`
+            return appendInstructionProgress(
+                i18n.t('translator.progress.translatingInstructions'),
+                progress.current,
+                progress.total,
             );
         }
 
         case 'saving-metadata':
-            return (
-                'Tarif bilgileri kaydediliyor…'
-            );
+            return i18n.t('translator.progress.savingMetadata');
 
         case 'saving-instructions':
-            return (
-                'Adımlar kaydediliyor…'
-            );
+            return i18n.t('translator.progress.savingInstructions');
 
         case 'complete':
-            return (
-                'Çeviri tamamlanıyor…'
-            );
+            return i18n.t('translator.progress.complete');
     }
 }
+
+const LANGUAGE_MESSAGE_KEYS = {
+    tr: 'languages.tr',
+    de: 'languages.de',
+    en: 'languages.en',
+    es: 'languages.es',
+    fr: 'languages.fr',
+    it: 'languages.it',
+    pl: 'languages.pl',
+    pt: 'languages.pt',
+    nl: 'languages.nl',
+    cs: 'languages.cs',
+    el: 'languages.el',
+} as const satisfies Record<TranslationLanguage, `languages.${TranslationLanguage}`>;
 
 function instructionProgressPercent(
     progress:
@@ -361,8 +375,8 @@ function TranslatorPanel({
                 setTranslation({
                     status: 'error',
 
-                    message:
-                        getTranslationErrorMessage(
+                    messageKey:
+                        getTranslationErrorMessageKey(
                             error.cause,
                         ),
 
@@ -376,12 +390,9 @@ function TranslatorPanel({
             setTranslation({
                 status: 'error',
 
-                message: isPublic
-                    ? (
-                        'Tarif Cookidoo’ya eklenemedi. ' +
-                        'Lütfen tekrar deneyin.'
-                    )
-                    : getTranslationErrorMessage(
+                messageKey: isPublic
+                    ? 'translator.error.importFailed'
+                    : getTranslationErrorMessageKey(
                         error,
                     ),
             });
@@ -432,13 +443,10 @@ function TranslatorPanel({
                     {page.type ===
                     'created-recipe'
                         ? (
-                            'Bu Created Recipe ' +
-                            'çevrilebilir.'
+                            i18n.t('translator.intro.createdRecipe')
                         )
                         : (
-                            'Bu Cookidoo tarifi ' +
-                            'Created Recipe olarak ' +
-                            'oluşturulup çevrilebilir.'
+                            i18n.t('translator.intro.publicRecipe')
                         )}
                 </p>
 
@@ -447,7 +455,7 @@ function TranslatorPanel({
                         <label
                             htmlFor="source-language"
                         >
-                            Tarif dili
+                            {i18n.t('translator.fields.sourceLanguage')}
                         </label>
 
                         <select
@@ -460,16 +468,16 @@ function TranslatorPanel({
                             }}
                         >
                             <option value="auto">
-                                Otomatik algıla
+                                {i18n.t('translator.fields.autoDetect')}
                             </option>
 
                             {TRANSLATION_LANGUAGES.map(
-                                ({code, label}) => (
+                                (code) => (
                                     <option
                                         key={code}
                                         value={code}
                                     >
-                                        {label}
+                                        {i18n.t(LANGUAGE_MESSAGE_KEYS[code])}
                                     </option>
                                 ),
                             )}
@@ -480,7 +488,7 @@ function TranslatorPanel({
                         <label
                             htmlFor="target-language"
                         >
-                            Hedef dil
+                            {i18n.t('translator.fields.targetLanguage')}
                         </label>
 
                         <select
@@ -491,11 +499,14 @@ function TranslatorPanel({
                                 handleTargetChange(event.target.value);
                             }}
                         >
-                            {targetLanguage === null && <option value="">Yükleniyor…</option>}
-                            {SUPPORTED_TARGET_LANGUAGES.map((code) => {
-                                const language = TRANSLATION_LANGUAGES.find((item) => item.code === code);
-                                return <option key={code} value={code}>{language?.label ?? code}</option>;
-                            })}
+                            {targetLanguage === null && (
+                                <option value="">{i18n.t('translator.fields.loading')}</option>
+                            )}
+                            {SUPPORTED_TARGET_LANGUAGES.map((code) => (
+                                <option key={code} value={code}>
+                                    {i18n.t(LANGUAGE_MESSAGE_KEYS[code])}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -507,7 +518,7 @@ function TranslatorPanel({
                             className="secondary"
                             onClick={onCancel}
                         >
-                            İptal
+                            {i18n.t('translator.actions.cancel')}
                         </button>
                     )}
 
@@ -523,8 +534,8 @@ function TranslatorPanel({
                     >
                         {page.type ===
                         'public-recipe'
-                            ? 'Oluştur ve çevir'
-                            : 'Tarifi çevir'}
+                            ? i18n.t('translator.actions.createAndTranslate')
+                            : i18n.t('translator.actions.translate')}
                     </button>
                 </div>
             </div>
@@ -566,7 +577,7 @@ function TranslatorPanel({
                 </div>
 
                 <h3 className="ct-state-title">
-                    Tarif çevriliyor…
+                    {i18n.t('translator.progress.title')}
                 </h3>
 
                 <p
@@ -587,11 +598,10 @@ function TranslatorPanel({
                         role="progressbar"
                         aria-label={
                             percent === undefined
-                                ? 'Çeviri ilerlemesi'
-                                : (
-                                    'Çeviri ilerlemesi: ' +
-                                    `yüzde ${percent}`
-                                )
+                                ? i18n.t('translator.progress.label')
+                                : i18n.t('translator.progress.labelPercent', {
+                                    percent: String(percent),
+                                })
                         }
                         aria-valuemin={
                             percent === undefined
@@ -637,11 +647,8 @@ function TranslatorPanel({
                 ct-progress-secondary
               "
                         >
-                            Dil modeli
-                            hazırlanıyor… %
-                            {
-                                state.downloadPercent
-                            }
+                            {i18n.t('translator.progress.preparingModel')}
+                            {' %'}{state.downloadPercent}
                         </p>
                     )}
 
@@ -650,9 +657,7 @@ function TranslatorPanel({
             ct-state-hint
           "
                 >
-                    Çeviri tamamlanana
-                    kadar bu pencereyi
-                    açık tutun.
+                    {i18n.t('translator.progress.keepOpen')}
                 </p>
             </section>
         );
@@ -699,8 +704,7 @@ function TranslatorPanel({
                 </div>
 
                 <h3 className="ct-state-title">
-                    Tarif başarıyla
-                    çevrildi
+                    {i18n.t('translator.success.title')}
                 </h3>
 
                 <p
@@ -708,8 +712,7 @@ function TranslatorPanel({
             ct-state-description
           "
                 >
-                    Çeviri Cookidoo'ya
-                    kaydedildi.
+                    {i18n.t('translator.success.description')}
                 </p>
 
                 <div
@@ -728,8 +731,7 @@ function TranslatorPanel({
                                 );
                             }}
                         >
-                            Oluşturulan
-                            tarifi aç
+                            {i18n.t('translator.actions.openCreatedRecipe')}
                         </button>
                     ) : (
                         onReload && (
@@ -740,7 +742,7 @@ function TranslatorPanel({
                                     onReload
                                 }
                             >
-                                Sayfayı yenile
+                                {i18n.t('translator.actions.reload')}
                             </button>
                         )
                     )}
@@ -751,7 +753,7 @@ function TranslatorPanel({
                             className="secondary"
                             onClick={onCancel}
                         >
-                            Kapat
+                            {i18n.t('translator.actions.close')}
                         </button>
                     )}
                 </div>
@@ -804,7 +806,7 @@ function TranslatorPanel({
                 </div>
 
                 <h3 className="ct-state-title">
-                    Tarif çevrilemedi
+                    {i18n.t('translator.error.title')}
                 </h3>
 
                 <p
@@ -812,7 +814,7 @@ function TranslatorPanel({
             ct-state-description
           "
                 >
-                    {state.message}
+                    {i18n.t(state.messageKey)}
                 </p>
 
                 {state.createdRecipeId && (
@@ -821,11 +823,7 @@ function TranslatorPanel({
               ct-state-description
             "
                     >
-                        Created Recipe
-                        oluşturuldu ancak
-                        çeviri veya kaydetme
-                        tamamlanmamış
-                        olabilir.
+                        {i18n.t('translator.error.createdRecipePartial')}
                     </p>
                 )}
 
@@ -845,8 +843,7 @@ function TranslatorPanel({
                                 );
                             }}
                         >
-                            Oluşturulan
-                            tarifi aç
+                            {i18n.t('translator.actions.openCreatedRecipe')}
                         </button>
                     ) : (
                         <button
@@ -858,7 +855,7 @@ function TranslatorPanel({
                                 });
                             }}
                         >
-                            Tekrar dene
+                            {i18n.t('translator.actions.retry')}
                         </button>
                     )}
 
@@ -868,7 +865,7 @@ function TranslatorPanel({
                             className="secondary"
                             onClick={onCancel}
                         >
-                            Kapat
+                            {i18n.t('translator.actions.close')}
                         </button>
                     )}
                 </div>
