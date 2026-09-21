@@ -1,16 +1,12 @@
 import type {Instruction, ProtectedCookingAnnotation} from "../cookidoo/types";
-import {formatProtectedAnnotation} from "./annotation-formatter";
+import type {AnnotationFormatter} from "./annotation-formatters";
 import {containsAnnotationMarker} from "./markers";
 import type {TranslatedPreparedInstruction} from "./translate-prepared-instruction";
-
-export interface RestoreInstructionOptions {
-    targetLanguage: string;
-}
 
 /** Only protected TTS/MODE annotations are rebuilt; unprotected source offsets are discarded. */
 export function restoreInstruction(
     translated: TranslatedPreparedInstruction,
-    options: RestoreInstructionOptions,
+    formatter: AnnotationFormatter,
 ): Instruction {
     let text = translated.text;
     const annotations: ProtectedCookingAnnotation[] = [];
@@ -58,7 +54,9 @@ export function restoreInstruction(
         if (offset < 0 || text.indexOf(marker, offset + marker.length) >= 0) {
             throw new Error(`Expected exactly one annotation marker: ${marker}`);
         }
-        const display = formatProtectedAnnotation(annotation, options.targetLanguage);
+        const display = annotation.type === "TTS"
+            ? formatter.formatTts(annotation)
+            : formatter.formatMode(annotation);
         text = text.slice(0, offset) + display + text.slice(offset + marker.length);
         annotations.push({
             ...structuredClone(annotation),

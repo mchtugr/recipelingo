@@ -1,5 +1,6 @@
 import type {CookidooClient} from "../cookidoo/client";
 import type {Ingredient, Instruction} from "../cookidoo/types";
+import {getAnnotationFormatter} from "./annotation-formatters";
 import {
   translateWithChrome,
   type TranslateOptions,
@@ -91,6 +92,7 @@ export async function translateCreatedRecipe(
   if (effectiveSourceLanguage === targetLanguage) {
     throw new SameTranslationLanguageError(effectiveSourceLanguage);
   }
+  const annotationFormatter = getAnnotationFormatter(targetLanguage);
   const translatePlainText = (text: string): Promise<string> =>
     text.trim()
       ? translateText(
@@ -119,7 +121,7 @@ export async function translateCreatedRecipe(
       {sourceLanguage: effectiveSourceLanguage, targetLanguage, onDownloadProgress},
       translateText,
     );
-    instructions.push(restoreInstruction(translated, {targetLanguage}));
+    instructions.push(restoreInstruction(translated, annotationFormatter));
     report({stage: "translating-instructions", current: instructions.length, total});
   }
 

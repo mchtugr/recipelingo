@@ -1,21 +1,30 @@
 import {describe, expect, it} from "vitest";
+import type {ModeAnnotation, TtsAnnotation} from "../cookidoo/types";
 import type {TranslatedPreparedInstruction} from "./translate-prepared-instruction";
 import {restoreInstruction} from "./restore-instruction";
+import {
+  trAnnotationFormatter,
+  type AnnotationFormatter,
+} from "./annotation-formatters";
 
-const tts = (marker: string, data = {time: 5, speed: "5"}) => ({
+const tts = (marker: string, data: TtsAnnotation["data"] = {time: 5, speed: "5"}) => ({
   marker, originalText: "source", annotation: {
     type: "TTS" as const, position: {offset: 99, length: 6}, data,
     extra: {keep: true},
   },
 });
-const mode = (marker: string, name = "dough") => ({
+const mode = (
+  marker: string,
+  name = "dough",
+  data: ModeAnnotation["data"] = {time: 180},
+) => ({
   marker, originalText: "source", annotation: {
     type: "MODE" as const, name, position: {offset: 55, length: 6},
-    data: {time: 180},
+    data,
   },
 });
 const restore = (input: TranslatedPreparedInstruction) =>
-  restoreInstruction(input, {targetLanguage: "tr"});
+  restoreInstruction(input, trAnnotationFormatter);
 
 describe("restoreInstruction", () => {
   it("restores TTS with new position, preserved data and independent clones", () => {
@@ -36,6 +45,30 @@ describe("restoreInstruction", () => {
   it("restores MODE", () => {
     expect(restore({text: "Use <0> now", protectedAnnotations: [mode("<0>")]}))
       .toMatchObject({text: "Use Hamur/3 dk now", annotations: [{position: {offset: 4, length: 10}}]});
+  });
+
+  it("uses the injected formatter and rebuilds positions from its output", () => {
+    const formatter: AnnotationFormatter = {
+      formatTts: () => "[TTS]",
+      formatMode: () => "[MODE]",
+    };
+    const input = {
+      text: "<0> then <1>",
+      protectedAnnotations: [
+        tts("<0>", {temperature: {value: "100", unit: "C"}, speed: "2"}),
+        mode("<1>", "dough", {time: 180, accessory: "Varoma"}),
+      ],
+    } satisfies TranslatedPreparedInstruction;
+    const result = restoreInstruction(input, formatter);
+
+    expect(result.text).toBe("[TTS] then [MODE]");
+    expect(result.annotations.map(({position}) => position)).toEqual([
+      {offset: 0, length: 5},
+      {offset: 11, length: 6},
+    ]);
+    expect(result.annotations.map(({data}) => data)).toEqual(
+      input.protectedAnnotations.map(({annotation}) => annotation.data),
+    );
   });
 
   it("updates later offsets after earlier replacement", () => {
@@ -116,12 +149,7 @@ describe("restoreInstruction", () => {
       ],
     };
 
-    const result = restoreInstruction(
-        translated,
-        {
-          targetLanguage: "tr",
-        },
-    );
+    const result = restoreInstruction(translated, trAnnotationFormatter);
 
     expect(result.text).toBe(
         "Önce 5 sn/hız 5, ardından Hamur/3 dk uygulayın.",

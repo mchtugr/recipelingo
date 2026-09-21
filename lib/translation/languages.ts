@@ -1,3 +1,8 @@
+import {
+  SUPPORTED_ANNOTATION_LANGUAGES,
+  type SupportedAnnotationLanguage,
+} from "./annotation-formatters";
+
 export const TRANSLATION_LANGUAGES = [
   "tr",
   "de",
@@ -15,9 +20,8 @@ export const TRANSLATION_LANGUAGES = [
 export type TranslationLanguage = typeof TRANSLATION_LANGUAGES[number];
 export type SourceLanguage = "auto" | TranslationLanguage;
 
-// Expand only after the protected annotation formatter supports the language.
-export const SUPPORTED_TARGET_LANGUAGES = ["tr"] as const;
-export type SupportedTargetLanguage = typeof SUPPORTED_TARGET_LANGUAGES[number];
+export const SUPPORTED_TARGET_LANGUAGES = SUPPORTED_ANNOTATION_LANGUAGES;
+export type SupportedTargetLanguage = SupportedAnnotationLanguage;
 
 export function getLanguageFromLocale(locale: string): TranslationLanguage | undefined {
   const language = locale.trim().split(/[-_]/, 1)[0]?.toLowerCase();
@@ -46,5 +50,7 @@ export function resolveTargetLanguage({
     return routeLanguage;
   }
 
-  return SUPPORTED_TARGET_LANGUAGES[0];
+  const defaultLanguage = SUPPORTED_TARGET_LANGUAGES[0];
+  if (!defaultLanguage) throw new Error("No supported target languages configured");
+  return defaultLanguage;
 }

@@ -1,5 +1,14 @@
 import {describe, expect, it} from "vitest";
-import {getLanguageFromLocale, resolveTargetLanguage} from "./languages";
+import {ANNOTATION_FORMATTERS} from "./annotation-formatters";
+import {
+  getLanguageFromLocale,
+  resolveTargetLanguage,
+  SUPPORTED_TARGET_LANGUAGES,
+} from "./languages";
+
+it("enables exactly the target languages that have annotation formatters", () => {
+  expect(SUPPORTED_TARGET_LANGUAGES).toEqual(Object.keys(ANNOTATION_FORMATTERS));
+});
 
 describe("getLanguageFromLocale", () => {
   it.each([
