@@ -1,0 +1,145 @@
+info:
+  name: Delete All Created Recipes
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{baseUrl}}/created-recipes/{{locale}}"
+  headers:
+    - name: Accept
+      value: application/json
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const status = res.getStatus();
+
+        if (status !== 200) {
+          throw new Error(
+            `Could not load created recipes. HTTP ${status}`
+          );
+        }
+
+        const body = res.getBody();
+        const recipes = body?.items;
+
+        if (!Array.isArray(recipes)) {
+          throw new Error(
+            "Expected response.items to be an array"
+          );
+        }
+
+        const recipeIds = recipes
+          .map(recipe => recipe?.recipeId)
+          .filter(Boolean);
+
+        if (recipeIds.length === 0) {
+          console.log("No created recipes to delete.");
+          return;
+        }
+
+        console.log(
+          `Found ${recipeIds.length} created recipe(s).`
+        );
+
+        const baseUrl = bru.getEnvVar("baseUrl");
+        const locale = bru.getEnvVar("locale");
+
+        // Authentication cookies
+        const jar = bru.cookies.jar();
+
+        const oauthCookie = await jar.getCookie(
+          baseUrl,
+          "_oauth2_proxy"
+        );
+
+        const authenticatedCookie = await jar.getCookie(
+          baseUrl,
+          "v-authenticated"
+        );
+
+        const getCookieValue = cookie => {
+          if (typeof cookie === "string") {
+            return cookie;
+          }
+
+          return cookie?.value;
+        };
+
+        const oauthValue = getCookieValue(oauthCookie);
+        const authenticatedValue =
+          getCookieValue(authenticatedCookie);
+
+        if (!oauthValue || !authenticatedValue) {
+          throw new Error(
+            "Cookidoo authentication cookies were not found."
+          );
+        }
+
+        const cookieHeader = [
+          `_oauth2_proxy=${oauthValue}`,
+          `v-authenticated=${authenticatedValue}`
+        ].join("; ");
+
+        let deleted = 0;
+        let failed = 0;
+
+        for (const recipeId of recipeIds) {
+          const url =
+            `${baseUrl}/created-recipes/${locale}/${recipeId}`;
+
+          console.log(`Deleting ${recipeId}...`);
+
+          try {
+            const response = await bru.sendRequest({
+              method: "DELETE",
+              url,
+              headers: {
+                Accept: "application/json",
+                Cookie: cookieHeader
+              }
+            });
+
+            const deleteStatus = response.status;
+
+            if (
+              deleteStatus >= 200 &&
+              deleteStatus < 300
+            ) {
+              deleted++;
+
+              console.log(
+                `✓ ${recipeId} -> HTTP ${deleteStatus}`
+              );
+            } else {
+              failed++;
+
+              console.error(
+                `✗ ${recipeId} -> HTTP ${deleteStatus}`
+              );
+            }
+          } catch (error) {
+            failed++;
+
+            const deleteStatus =
+              error?.response?.status ?? "unknown";
+
+            console.error(
+              `✗ ${recipeId} -> HTTP ${deleteStatus}`
+            );
+          }
+        }
+
+        console.log("");
+        console.log(
+          `Finished. Deleted: ${deleted}, Failed: ${failed}`
+        );
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

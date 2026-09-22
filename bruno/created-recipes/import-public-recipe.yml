@@ -1,0 +1,52 @@
+info:
+  name: Import Public Recipe
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/created-recipes/{{locale}}/add-to-cookidoo"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+
+  body:
+    type: json
+    data: |-
+      {
+        "recipeUrl": "{{baseUrl}}/recipes/recipe/{{locale}}/{{publicRecipeId}}",
+        "partnerId": "cookidoo"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const status = res.getStatus();
+
+        test("Public recipe imported successfully", () => {
+          expect(status).to.be.within(200, 299);
+        });
+
+        if (status >= 200 && status < 300) {
+          const body = res.getBody();
+
+          if (body?.recipeId) {
+            bru.setEnvVar("createdRecipeId", body.recipeId);
+
+            console.log(
+              `✓ createdRecipeId updated: ${body.recipeId}`
+            );
+          } else {
+            console.log("Recipe imported but recipeId was not found in response");
+          }
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

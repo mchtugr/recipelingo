@@ -1,0 +1,166 @@
+info:
+  name: Delete Selected Created Recipes
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{baseUrl}}/created-recipes/{{locale}}"
+  headers:
+    - name: Accept
+      value: application/json
+
+
+runtime:
+  variables:
+    - name: selectedRecipeIds
+      value:
+        type: object
+        data: '["01M34NQ5SRSFR4NS5SG7NCV54T", "01M34ABC1234567890XYZABCDE"]'
+
+  scripts:
+    - type: after-response
+      code: |-
+        const selectedRecipeIds =
+          bru.getRequestVar("selectedRecipeIds");
+
+        if (!Array.isArray(selectedRecipeIds)) {
+          throw new Error(
+            "selectedRecipeIds must be an array"
+          );
+        }
+
+        const status = res.getStatus();
+
+        if (status !== 200) {
+          throw new Error(
+            `Could not load created recipes. HTTP ${status}`
+          );
+        }
+
+        const body = res.getBody();
+        const recipes = body?.items;
+
+        if (!Array.isArray(recipes)) {
+          throw new Error(
+            "Expected response.items to be an array"
+          );
+        }
+
+        const existingRecipeIds = new Set(
+          recipes
+            .map(recipe => recipe?.recipeId)
+            .filter(Boolean)
+        );
+
+        const idsToDelete = selectedRecipeIds.filter(
+          recipeId => existingRecipeIds.has(recipeId)
+        );
+
+        const missingIds = selectedRecipeIds.filter(
+          recipeId => !existingRecipeIds.has(recipeId)
+        );
+
+        console.log(`Selected: ${selectedRecipeIds.length}`);
+        console.log(`Found: ${idsToDelete.length}`);
+
+        if (missingIds.length > 0) {
+          console.log("Not found:", missingIds);
+        }
+
+        if (idsToDelete.length === 0) {
+          console.log("No matching recipes to delete.");
+          return;
+        }
+
+        const baseUrl = bru.getEnvVar("baseUrl");
+        const locale = bru.getEnvVar("locale");
+
+        const jar = bru.cookies.jar();
+
+        const oauthCookie = await jar.getCookie(
+          baseUrl,
+          "_oauth2_proxy"
+        );
+
+        const authenticatedCookie = await jar.getCookie(
+          baseUrl,
+          "v-authenticated"
+        );
+
+        const getCookieValue = cookie => {
+          if (typeof cookie === "string") {
+            return cookie;
+          }
+
+          return cookie?.value;
+        };
+
+        const oauthValue =
+          getCookieValue(oauthCookie);
+
+        const authenticatedValue =
+          getCookieValue(authenticatedCookie);
+
+        if (!oauthValue || !authenticatedValue) {
+          throw new Error(
+            "Cookidoo authentication cookies were not found."
+          );
+        }
+
+        const cookieHeader = [
+          `_oauth2_proxy=${oauthValue}`,
+          `v-authenticated=${authenticatedValue}`
+        ].join("; ");
+
+        let deleted = 0;
+        let failed = 0;
+
+        for (const recipeId of idsToDelete) {
+          const url =
+            `${baseUrl}/created-recipes/${locale}/${recipeId}`;
+
+          try {
+            const response = await bru.sendRequest({
+              method: "DELETE",
+              url,
+              headers: {
+                Accept: "application/json",
+                Cookie: cookieHeader
+              }
+            });
+
+            if (
+              response.status >= 200 &&
+              response.status < 300
+            ) {
+              deleted++;
+              console.log(
+                `✓ ${recipeId} -> HTTP ${response.status}`
+              );
+            } else {
+              failed++;
+              console.error(
+                `✗ ${recipeId} -> HTTP ${response.status}`
+              );
+            }
+          } catch (error) {
+            failed++;
+
+            console.error(
+              `✗ ${recipeId}`,
+              error
+            );
+          }
+        }
+
+        console.log(
+          `Finished. Deleted: ${deleted}, Failed: ${failed}`
+        );
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -1,0 +1,36 @@
+info:
+  name: Create Created Recipe
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/created-recipes/{{locale}}/{{createdRecipeId}}"
+  headers:
+    - name: Accept
+      value: application/vnd.vorwerk.customer-recipe.full+json
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        name: "Test Recipe",
+        "ingredients": [],
+        "instructions: []
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Created recipe saved successfully", () => {
+          expect(res.getStatus()).to.be.within(200, 299);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

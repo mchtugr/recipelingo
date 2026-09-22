@@ -1,0 +1,49 @@
+info:
+  name: Check Session
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/created-recipes/{{locale}}"
+  headers:
+    - name: Accept
+      value: application/json
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const status = res.getStatus();
+
+        test("Session is authenticated", () => {
+          expect(status).to.equal(200);
+        });
+
+        if (status === 200) {
+          console.log("✓ Cookidoo session is valid");
+          return;
+        }
+
+        if (status === 401) {
+          throw new Error(
+            "Cookidoo session expired or authentication cookies are missing"
+          );
+        }
+
+        if (status >= 300 && status < 400) {
+          throw new Error(
+            "Cookidoo redirected the request. Session is probably invalid."
+          );
+        }
+
+        throw new Error(
+          `Session check failed with HTTP ${status}`
+        );
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -1,0 +1,11 @@
+opencollection: 1.0.0
+
+info:
+  name: Cookidoo Translator
+
+config:
+  proxy:
+    inherit: true
+
+bundled: false
+extensions: {}

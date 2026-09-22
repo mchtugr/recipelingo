@@ -1,0 +1,12 @@
+variables:
+  - name: baseUrl
+    value: https://cookidoo.com.tr
+
+  - name: locale
+    value: tr-TR
+
+  - name: publicRecipeId
+    value: r93674
+
+  - name: createdRecipeId
+    value: REPLACE_WITH_CREATED_RECIPE_ID
