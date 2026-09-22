@@ -528,7 +528,7 @@ describe("translateCreatedRecipe", () => {
   );
 
   it(
-      "drops source ingredient offsets after translating an instruction",
+      "preserves ingredient weighing annotation after translating an instruction",
       async () => {
         const source = base([
           step(
@@ -542,6 +542,7 @@ describe("translateCreatedRecipe", () => {
                   },
                   data: {
                     id: "flour",
+                    description: {text: "flour", annotations: []},
                   },
                 },
               ],
@@ -564,11 +565,11 @@ describe("translateCreatedRecipe", () => {
                 },
             );
 
-        expect(
-            result.instructions[0],
-        ).toEqual(
-            step("TR Add flour"),
-        );
+        expect(result.instructions[0]?.text).toBe("TR Add flour");
+        expect(result.instructions[0]?.annotations).toMatchObject([
+          {type: "INGREDIENT", position: {offset: 2, length: 1},
+            data: {id: "flour", description: {text: "TR flour", annotations: []}}},
+        ]);
 
         expect(
             source.recipeContent

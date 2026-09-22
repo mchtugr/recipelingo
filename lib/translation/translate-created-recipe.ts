@@ -10,6 +10,7 @@ import {
 import {prepareInstruction} from "./prepare-instruction";
 import {restoreInstruction} from "./restore-instruction";
 import {translatePreparedInstruction} from "./translate-prepared-instruction";
+import {captureIngredients, restoreIngredients} from "./ingredient-annotations";
 import {
   detectRecipeLanguage,
   type DetectRecipeLanguage,
@@ -65,8 +66,7 @@ export interface CreatedRecipeTranslationResult {
 }
 
 /**
- * Translates all fields before saving. Restoration rebuilds only TTS/MODE annotations;
- * source INGREDIENT/VOLUME offsets are discarded because translation moves the text.
+ * Translates all fields before saving. Restoration rebuilds TTS/MODE and INGREDIENT positions.
  * The two PATCHes are separate: an instruction PATCH failure can leave metadata saved.
  */
 export async function translateCreatedRecipe(
@@ -115,13 +115,16 @@ export async function translateCreatedRecipe(
   const total = recipe.instructions.length;
   report({stage: "translating-instructions", current: 0, total});
   for (const instruction of recipe.instructions) {
+    const capturedIngredients = captureIngredients(instruction);
     const prepared = prepareInstruction(instruction);
     const translated = await translatePreparedInstruction(
       prepared,
       {sourceLanguage: effectiveSourceLanguage, targetLanguage, onDownloadProgress},
       translateText,
     );
-    instructions.push(restoreInstruction(translated, annotationFormatter));
+    instructions.push(await restoreIngredients(
+      restoreInstruction(translated, annotationFormatter), capturedIngredients, translatePlainText,
+    ));
     report({stage: "translating-instructions", current: instructions.length, total});
   }
 
