@@ -52,6 +52,31 @@ describe("trAnnotationFormatter", () => {
 });
 
 describe("shared annotation formatter", () => {
+  it("formats every confirmed MODE shape with source glyphs in every language", () => {
+    const cases = [
+      {name: "dough", data: {time: 10}, glyph: "\uE001", suffix: "/10"},
+      {name: "turbo", data: {time: 2}, glyph: "\uE00B", suffix: "/2"},
+      {name: "blend", data: {time: 30, speed: "6"}, glyph: "\uE01E", suffix: "/30"},
+      {name: "warm_up", data: {temperature: {value: "65", unit: "C"}, speed: "soft"}, glyph: "\uE019", suffix: "/65°C"},
+      {name: "rice_cooker", data: undefined, glyph: "\uE00D", suffix: ""},
+    ] as const;
+    for (const [language, messages] of Object.entries(ANNOTATION_MESSAGES)) {
+      const formatter = getAnnotationFormatter(language as keyof typeof ANNOTATION_MESSAGES);
+      for (const {name, data, glyph, suffix} of cases) {
+        const result = formatter.formatMode(mode(name, data),
+          {sourceText: glyph, glyphs: [glyph]});
+        const timeUnit = language === "tr" ? " sn"
+          : language === "en" || language === "it" ? " sec"
+            : language === "de" ? " Sek."
+              : " s";
+        expect(result).toBe(`${messages.modes[name]} ${glyph}${suffix}${suffix && name !== "warm_up" ? timeUnit : ""}`);
+        if (name === "blend") expect(result).not.toContain("6");
+        if (name === "warm_up") expect(result).not.toContain("soft");
+      }
+      expect(formatter.formatMode(mode("future_mode", undefined),
+        {sourceText: "\uE027", glyphs: ["\uE027"]})).toBe("future_mode \uE027");
+    }
+  });
   it("uses exactly the enabled dictionary languages as the registry", () => {
     expect(Object.keys(ANNOTATION_MESSAGES)).toEqual(["tr", "en", "de", "fr", "es", "it"]);
     expect(Object.keys(ANNOTATION_FORMATTERS)).toEqual(Object.keys(ANNOTATION_MESSAGES));

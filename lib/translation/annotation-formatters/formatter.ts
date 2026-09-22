@@ -18,7 +18,7 @@ function formatTime(seconds: number, messages: AnnotationMessages): string {
 function formatTemperature(temperature: Temperature): string {
   if (temperature.value === "varoma") return "Varoma";
   if (temperature.unit !== "C" && temperature.unit !== "F") {
-    throw new Error(`Unsupported TTS temperature unit: ${String(temperature.unit)}`);
+    throw new Error(`Unsupported annotation temperature unit: ${String(temperature.unit)}`);
   }
   return `${temperature.value}°${temperature.unit}`;
 }
@@ -47,15 +47,16 @@ export function createAnnotationFormatter(messages: AnnotationMessages): Annotat
     },
 
     formatMode(annotation, context) {
-      const displayName = annotation.name === "dough"
-        ? messages.modes.dough
-        : annotation.name === "turbo"
-          ? messages.modes.turbo
-          : annotation.name;
+      const displayName = Object.prototype.hasOwnProperty.call(messages.modes, annotation.name)
+        ? messages.modes[annotation.name as keyof typeof messages.modes]
+        : annotation.name;
       const glyphs = context?.glyphs ?? [];
       const parts = [`${displayName}${glyphs.length ? ` ${glyphs.join(" ")}` : ""}`];
-      if (annotation.data.time !== undefined) parts.push(formatTime(annotation.data.time, messages));
-      if (annotation.name === "turbo" && annotation.data.pulseCount !== undefined) {
+      if (annotation.data?.time !== undefined) parts.push(formatTime(annotation.data.time, messages));
+      if (annotation.data?.temperature !== undefined) {
+        parts.push(formatTemperature(annotation.data.temperature));
+      }
+      if (annotation.name === "turbo" && annotation.data?.pulseCount !== undefined) {
         parts.push(messages.formatCount(validateNonNegativeInteger(
           annotation.data.pulseCount,
           "MODE pulse count",

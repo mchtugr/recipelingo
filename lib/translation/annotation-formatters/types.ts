@@ -13,6 +13,6 @@ export interface AnnotationFormatContext {
 export interface AnnotationMessages {
   units: {second: string; minute: string};
   labels: {speed: string; reverse: string};
-  modes: {dough: string; turbo: string};
+  modes: Record<"dough" | "turbo" | "blend" | "warm_up" | "rice_cooker", string>;
   formatCount(count: number): string;
 }

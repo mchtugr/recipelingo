@@ -19,9 +19,10 @@ const tts = (marker: string, data: TtsAnnotation["data"] = {time: 5, speed: "5"}
 const mode = (
   marker: string,
   name = "dough",
-  data: ModeAnnotation["data"] = {time: 180},
+  data: ModeAnnotation["data"] = name === "rice_cooker" ? undefined : {time: 180},
+  glyphs: string[] = [],
 ) => ({
-  marker, originalText: "source", glyphs: [], annotation: {
+  marker, originalText: "source", glyphs, annotation: {
     type: "MODE" as const, name, position: {offset: 55, length: 6},
     data,
   },
@@ -33,9 +34,9 @@ describe("restoreInstruction", () => {
   it.each([
     ["Hamur \uE001/10 sn", "MODE", "dough", {time: 10}, "Dough \uE001/10 sec", "Teig \uE001/10 Sek."],
     ["Turbo \uE00B/2 sn", "MODE", "turbo", {time: 2}, "Turbo \uE00B/2 sec", "Turbo \uE00B/2 Sek."],
-    ["Karıştırma \uE01E/30 sn", "MODE", "blend", {time: 30}, "blend \uE01E/30 sec", "blend \uE01E/30 Sek."],
-    ["Isıtma \uE019/65°C", "MODE", "warm_up", {}, "warm_up \uE019", "warm_up \uE019"],
-    ["Pilav Pişirici \uE00D", "MODE", "rice_cooker", {}, "rice_cooker \uE00D", "rice_cooker \uE00D"],
+    ["Karıştırma \uE01E/30 sn", "MODE", "blend", {time: 30}, "Blend \uE01E/30 sec", "Mixen \uE01E/30 Sek."],
+    ["Isıtma \uE019/65°C", "MODE", "warm_up", {temperature: {value: "65", unit: "C"}, speed: "soft"}, "Warm Up \uE019/65°C", "Erwärmen \uE019/65°C"],
+    ["Pilav Pişirici \uE00D", "MODE", "rice_cooker", undefined, "Rice Cooker \uE00D", "Reiskocher \uE00D"],
     ["Yeni Mod \uE027/5 dk", "MODE", "future_mode", {time: 300}, "future_mode \uE027/5 min", "future_mode \uE027/5 Min."],
     ["1 sn/hız \uE002", "TTS", "", {time: 1, speed: "soft"}, "1 sec/speed \uE002", "1 Sek./Stufe \uE002"],
     ["1 dk/\uE003/hız 8.5", "TTS", "", {time: 60, direction: "CCW", speed: "8.5"}, "1 min/\uE003/speed 8.5", "1 Min./\uE003/Stufe 8.5"],
@@ -135,6 +136,22 @@ describe("restoreInstruction", () => {
         annotation.position.offset + annotation.position.length)).toBe(expected);
     }
     expect(result.annotations[1]?.position?.offset).toBe(result.text.indexOf("Hamur/3 dk"));
+  });
+
+  it("restores multiple MODE annotations independently", () => {
+    const result = restore({
+      text: "<0> <1>",
+      protectedAnnotations: [
+        mode("<0>", "rice_cooker", undefined, ["\uE00D"]),
+        mode("<1>", "warm_up", {temperature: {value: "65", unit: "C"}, speed: "soft"}, ["\uE019"]),
+      ],
+    });
+
+    expect(result.text).toBe("Pilav Pişirici \uE00D Isıtma \uE019/65°C");
+    expect(result.annotations.map(({position}) => position)).toEqual([
+      {offset: 0, length: "Pilav Pişirici \uE00D".length},
+      {offset: "Pilav Pişirici \uE00D ".length, length: "Isıtma \uE019/65°C".length},
+    ]);
   });
 
   it("matches marker names exactly, including <1> and <10>", () => {

@@ -169,7 +169,7 @@ export interface ModeAnnotation {
     name: string;
 
     position: AnnotationPosition;
-    data: ModeData;
+    data?: ModeData;
 
     [key: string]: unknown;
 }
