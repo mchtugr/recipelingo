@@ -38,8 +38,8 @@
     --ct-shadow-fab: 0 6px 20px rgb(0 0 0 / 20%);
 
     /* Layers */
-    --ct-z-fab: 1;
-    --ct-z-modal: 2;
+    --ct-z-fab: 1000;
+    --ct-z-modal: 1001;
 }
 
 .ct-app,
@@ -61,15 +61,15 @@
 
 .ct-fab {
     position: fixed;
-    right: 24px;
-    bottom: 24px;
+    right: 8px;
+    bottom: 72px;
     z-index: var(--ct-z-fab);
 
     display: grid;
     place-items: center;
 
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     padding: 0;
 
     border: 0;
