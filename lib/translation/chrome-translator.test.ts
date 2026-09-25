@@ -1,74 +1,101 @@
-import {describe, expect, it, vi} from "vitest";
-import {translateWithChrome, type TranslatorApi} from "./chrome-translator";
+import { describe, expect, it, vi } from "vitest";
+import { translateWithChrome, type TranslatorApi } from "./chrome-translator";
 
-const request = {sourceLanguage: "de", targetLanguage: "tr", text: "Hallo"};
+const request = { sourceLanguage: "de", targetLanguage: "tr", text: "Hallo" };
 
-function fakeApi(availability: Awaited<ReturnType<TranslatorApi["availability"]>> = "available") {
+function fakeApi(
+  availability: Awaited<
+    ReturnType<TranslatorApi["availability"]>
+  > = "available",
+) {
   const destroy = vi.fn();
   const translate = vi.fn(async () => "Merhaba");
-  const create = vi.fn(async (_options: Parameters<TranslatorApi["create"]>[0]) => ({translate, destroy}));
+  const create = vi.fn(
+    async (_options: Parameters<TranslatorApi["create"]>[0]) => ({
+      translate,
+      destroy,
+    }),
+  );
   const api: TranslatorApi = {
     availability: vi.fn(async () => availability),
     create,
   };
-  return {api, create, translate, destroy};
+  return { api, create, translate, destroy };
 }
 
 describe("translateWithChrome", () => {
   it("rejects when the browser API is absent", async () => {
-    await expect(
-        translateWithChrome(
-            request,
-            {},
-            null,
-        ),
-    ).rejects.toThrow(
-        "Chrome Translator API is not available",
+    await expect(translateWithChrome(request, {}, null)).rejects.toThrow(
+      "Chrome Translator API is not available",
     );
   });
 
   it("checks availability with the requested language pair", async () => {
-    const {api} = fakeApi();
+    const { api } = fakeApi();
     await translateWithChrome(request, {}, api);
-    expect(api.availability).toHaveBeenCalledWith({sourceLanguage: "de", targetLanguage: "tr"});
+    expect(api.availability).toHaveBeenCalledWith({
+      sourceLanguage: "de",
+      targetLanguage: "tr",
+    });
   });
 
   it("rejects unavailable pairs without creating a translator", async () => {
-    const {api, create} = fakeApi("unavailable");
+    const { api, create } = fakeApi("unavailable");
     await expect(translateWithChrome(request, {}, api)).rejects.toThrow(
       "Translation is unavailable for de → tr",
     );
     expect(create).not.toHaveBeenCalled();
   });
 
+  it("propagates translator creation failures", async () => {
+    const { api, create } = fakeApi();
+    create.mockRejectedValueOnce(new Error("creation failed"));
+    await expect(translateWithChrome(request, {}, api)).rejects.toThrow(
+      "creation failed",
+    );
+  });
+
   it.each(["available", "downloadable", "downloading"] as const)(
     "creates, translates, and destroys when %s",
     async (availability) => {
-      const {api, create, translate, destroy} = fakeApi(availability);
-      await expect(translateWithChrome(request, {}, api)).resolves.toBe("Merhaba");
-      expect(create).toHaveBeenCalledWith(expect.objectContaining({
-        sourceLanguage: "de", targetLanguage: "tr", monitor: expect.any(Function),
-      }));
+      const { api, create, translate, destroy } = fakeApi(availability);
+      await expect(translateWithChrome(request, {}, api)).resolves.toBe(
+        "Merhaba",
+      );
+      expect(create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceLanguage: "de",
+          targetLanguage: "tr",
+          monitor: expect.any(Function),
+        }),
+      );
       expect(translate).toHaveBeenCalledWith("Hallo");
       expect(destroy).toHaveBeenCalledOnce();
     },
   );
 
   it("forwards fractional download progress", async () => {
-    const {api, create} = fakeApi("downloadable");
+    const { api, create } = fakeApi("downloadable");
     const onDownloadProgress = vi.fn();
-    await translateWithChrome(request, {onDownloadProgress}, api);
+    await translateWithChrome(request, { onDownloadProgress }, api);
     const createOptions = create.mock.calls[0]![0];
     const monitor = new EventTarget();
     createOptions.monitor?.(monitor as CreateMonitor);
-    monitor.dispatchEvent(Object.assign(new Event("downloadprogress"), {loaded: 0.42}));
-    expect(onDownloadProgress).toHaveBeenCalledWith({loaded: 0.42, percent: 42});
+    monitor.dispatchEvent(
+      Object.assign(new Event("downloadprogress"), { loaded: 0.42 }),
+    );
+    expect(onDownloadProgress).toHaveBeenCalledWith({
+      loaded: 0.42,
+      percent: 42,
+    });
   });
 
   it("destroys the translator when translation fails", async () => {
-    const {api, translate, destroy} = fakeApi();
+    const { api, translate, destroy } = fakeApi();
     translate.mockRejectedValueOnce(new Error("translation failed"));
-    await expect(translateWithChrome(request, {}, api)).rejects.toThrow("translation failed");
+    await expect(translateWithChrome(request, {}, api)).rejects.toThrow(
+      "translation failed",
+    );
     expect(destroy).toHaveBeenCalledOnce();
   });
 
@@ -94,44 +121,30 @@ describe("translateWithChrome", () => {
         text: " ",
       },
     ],
-  ])(
-      "rejects empty translation inputs",
-      async (invalidRequest) => {
-        const { api, create } =
-            fakeApi();
+  ])("rejects empty translation inputs", async (invalidRequest) => {
+    const { api, create } = fakeApi();
 
-        await expect(
-            translateWithChrome(
-                invalidRequest,
-                {},
-                api,
-            ),
-        ).rejects.toThrow(
-            "non-empty",
-        );
+    await expect(translateWithChrome(invalidRequest, {}, api)).rejects.toThrow(
+      "non-empty",
+    );
 
-        expect(
-            create,
-        ).not.toHaveBeenCalled();
-      },
-  );
+    expect(create).not.toHaveBeenCalled();
+  });
 
   it("normalizes surrounding whitespace in language tags", async () => {
     const { api } = fakeApi();
 
     await translateWithChrome(
-        {
-          sourceLanguage: " de ",
-          targetLanguage: " tr ",
-          text: "Hallo",
-        },
-        {},
-        api,
+      {
+        sourceLanguage: " de ",
+        targetLanguage: " tr ",
+        text: "Hallo",
+      },
+      {},
+      api,
     );
 
-    expect(
-        api.availability,
-    ).toHaveBeenCalledWith({
+    expect(api.availability).toHaveBeenCalledWith({
       sourceLanguage: "de",
       targetLanguage: "tr",
     });

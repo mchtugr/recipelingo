@@ -1,28 +1,17 @@
-import {
-  afterEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CookidooClient } from "./client";
 import { CookidooAuthenticationError } from "./errors";
-import type {
-  CreatedRecipe,
-  Ingredient,
-  Instruction,
-} from "./types";
+import type { CreatedRecipe, Ingredient, Instruction } from "./types";
 
 const HOSTNAME = "cookidoo.com.tr";
 const LOCALE = "tr-TR";
 const RECIPE_ID = "test-recipe-id";
 
-const RECIPE_URL =
-    `https://${HOSTNAME}/created-recipes/${LOCALE}/${RECIPE_ID}`;
+const RECIPE_URL = `https://${HOSTNAME}/created-recipes/${LOCALE}/${RECIPE_ID}`;
 
 const FULL_RECIPE_MEDIA_TYPE =
-    "application/vnd.vorwerk.customer-recipe.full+json";
+  "application/vnd.vorwerk.customer-recipe.full+json";
 
 const ingredient: Ingredient = {
   type: "INGREDIENT",
@@ -46,24 +35,14 @@ const createdRecipe: CreatedRecipe = {
   },
 };
 
-function createResponse(
-    body?: unknown,
-    init: ResponseInit = {},
-): Response {
-  return new Response(
-      body === undefined
-          ? null
-          : JSON.stringify(body),
-      {
-        status: 200,
-        ...init,
-      },
-  );
+function createResponse(body?: unknown, init: ResponseInit = {}): Response {
+  return new Response(body === undefined ? null : JSON.stringify(body), {
+    status: 200,
+    ...init,
+  });
 }
 
-function createClient(
-    mockFetch: typeof fetch,
-): CookidooClient {
+function createClient(mockFetch: typeof fetch): CookidooClient {
   return new CookidooClient({
     hostname: HOSTNAME,
     locale: LOCALE,
@@ -77,21 +56,42 @@ afterEach(() => {
 
 describe("CookidooClient", () => {
   it.each([
-    ["import", (client: CookidooClient) => client.addPublicRecipeToCookidoo("r912684")],
+    [
+      "import",
+      (client: CookidooClient) => client.addPublicRecipeToCookidoo("r912684"),
+    ],
     ["load", (client: CookidooClient) => client.getCreatedRecipe(RECIPE_ID)],
-    ["metadata update", (client: CookidooClient) => client.patchRecipeMetadata(RECIPE_ID, {name: "Translated"})],
-    ["instructions update", (client: CookidooClient) => client.patchRecipeInstructions(RECIPE_ID, [instruction])],
-  ])("maps a 401 response from %s to CookidooAuthenticationError", async (_name, request) => {
-    const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({}, {status: 401}));
+    [
+      "metadata update",
+      (client: CookidooClient) =>
+        client.patchRecipeMetadata(RECIPE_ID, { name: "Translated" }),
+    ],
+    [
+      "instructions update",
+      (client: CookidooClient) =>
+        client.patchRecipeInstructions(RECIPE_ID, [instruction]),
+    ],
+  ])(
+    "maps a 401 response from %s to CookidooAuthenticationError",
+    async (_name, request) => {
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(createResponse({}, { status: 401 }));
 
-    await expect(request(createClient(mockFetch)))
-      .rejects.toBeInstanceOf(CookidooAuthenticationError);
-  });
+      await expect(request(createClient(mockFetch))).rejects.toBeInstanceOf(
+        CookidooAuthenticationError,
+      );
+    },
+  );
 
   it("does not treat 403 as an authentication error", async () => {
-    const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({}, {status: 403}));
+    const mockFetch = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(createResponse({}, { status: 403 }));
 
-    const error = await createClient(mockFetch).getCreatedRecipe(RECIPE_ID).catch(value => value);
+    const error = await createClient(mockFetch)
+      .getCreatedRecipe(RECIPE_ID)
+      .catch((value) => value);
 
     expect(error).toBeInstanceOf(Error);
     expect(error).not.toBeInstanceOf(CookidooAuthenticationError);
@@ -100,18 +100,24 @@ describe("CookidooClient", () => {
 
   describe("addPublicRecipeToCookidoo", () => {
     it("sends the captured import request and returns the Created Recipe ID", async () => {
-      const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(createResponse({
-        recipeId: "created-123",
-        recipeContent: {name: "Empolvados chilenos"},
-      }));
-      const result = await createClient(mockFetch).addPublicRecipeToCookidoo("r912684");
+      const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(
+        createResponse({
+          recipeId: "created-123",
+          recipeContent: { name: "Empolvados chilenos" },
+        }),
+      );
+      const result =
+        await createClient(mockFetch).addPublicRecipeToCookidoo("r912684");
       expect(result).toBe("created-123");
       expect(mockFetch).toHaveBeenCalledExactlyOnceWith(
         "https://cookidoo.com.tr/created-recipes/tr-TR/add-to-cookidoo",
         {
           method: "POST",
           credentials: "include",
-          headers: {Accept: "application/json", "Content-Type": "application/json"},
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             recipeUrl: "https://cookidoo.com.tr/recipes/recipe/tr-TR/r912684",
             partnerId: "cookidoo",
@@ -121,31 +127,35 @@ describe("CookidooClient", () => {
     });
 
     it("rejects failed or malformed responses", async () => {
-      const mockFetch = vi.fn<typeof fetch>().mockResolvedValueOnce(createResponse({}, {status: 400}));
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(createResponse({}, { status: 400 }));
       const client = createClient(mockFetch);
-      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow("Cookidoo request failed: 400");
-      mockFetch.mockResolvedValueOnce(createResponse({recipeContent: {}}));
-      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow("missing a valid recipeId");
+      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow(
+        "Cookidoo request failed: 400",
+      );
+      mockFetch.mockResolvedValueOnce(createResponse({ recipeContent: {} }));
+      await expect(client.addPublicRecipeToCookidoo("r912684")).rejects.toThrow(
+        "missing a valid recipeId",
+      );
     });
   });
 
   describe("constructor", () => {
     it("accepts a supported Cookidoo hostname", () => {
       expect(
-          () =>
-              new CookidooClient({
-                hostname: HOSTNAME,
-                locale: LOCALE,
-              }),
+        () =>
+          new CookidooClient({
+            hostname: HOSTNAME,
+            locale: LOCALE,
+          }),
       ).not.toThrow();
     });
 
     it("normalizes hostname casing", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(createdRecipe),
-      );
+      mockFetch.mockResolvedValue(createResponse(createdRecipe));
 
       const client = new CookidooClient({
         hostname: "COOKIDOO.COM.TR",
@@ -153,47 +163,32 @@ describe("CookidooClient", () => {
         fetch: mockFetch,
       });
 
-      await client.getCreatedRecipe(
-          RECIPE_ID,
-      );
+      await client.getCreatedRecipe(RECIPE_ID);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-          RECIPE_URL,
-          expect.any(Object),
-      );
+      expect(mockFetch).toHaveBeenCalledWith(RECIPE_URL, expect.any(Object));
     });
 
     it("rejects unsupported hostnames", () => {
       expect(
-          () =>
-              new CookidooClient({
-                hostname: "example.com",
-                locale: LOCALE,
-              }),
-      ).toThrow(
-          "Unsupported Cookidoo hostname: example.com",
-      );
+        () =>
+          new CookidooClient({
+            hostname: "example.com",
+            locale: LOCALE,
+          }),
+      ).toThrow("Unsupported Cookidoo hostname: example.com");
     });
 
-    it.each([
-      "",
-      "   ",
-      ".",
-      "..",
-      "tr/TR",
-    ])(
-        "rejects invalid locale route segment %j",
-        (locale) => {
-          expect(
-              () =>
-                  new CookidooClient({
-                    hostname: HOSTNAME,
-                    locale,
-                  }),
-          ).toThrow(
-              "A valid single route segment is required for locale",
-          );
-        },
+    it.each(["", "   ", ".", "..", "tr/TR"])(
+      "rejects invalid locale route segment %j",
+      (locale) => {
+        expect(
+          () =>
+            new CookidooClient({
+              hostname: HOSTNAME,
+              locale,
+            }),
+        ).toThrow("A valid single route segment is required for locale");
+      },
     );
   });
 
@@ -201,99 +196,61 @@ describe("CookidooClient", () => {
     it("constructs the Created Recipe URL correctly", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(createdRecipe),
-      );
+      mockFetch.mockResolvedValue(createResponse(createdRecipe));
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.getCreatedRecipe(
-          RECIPE_ID,
-      );
+      await client.getCreatedRecipe(RECIPE_ID);
 
       expect(mockFetch).toHaveBeenCalledOnce();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-          RECIPE_URL,
-          expect.any(Object),
-      );
+      expect(mockFetch).toHaveBeenCalledWith(RECIPE_URL, expect.any(Object));
     });
 
     it("sends credentials and the full recipe Accept header", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(createdRecipe),
-      );
+      mockFetch.mockResolvedValue(createResponse(createdRecipe));
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.getCreatedRecipe(
-          RECIPE_ID,
-      );
+      await client.getCreatedRecipe(RECIPE_ID);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-          RECIPE_URL,
-          {
-            method: "GET",
-            credentials: "include",
+      expect(mockFetch).toHaveBeenCalledWith(RECIPE_URL, {
+        method: "GET",
+        credentials: "include",
 
-            headers: {
-              Accept:
-              FULL_RECIPE_MEDIA_TYPE,
-            },
-          },
-      );
+        headers: {
+          Accept: FULL_RECIPE_MEDIA_TYPE,
+        },
+      });
     });
 
     it("returns the Created Recipe response", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(createdRecipe),
-      );
+      mockFetch.mockResolvedValue(createResponse(createdRecipe));
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      const result =
-          await client.getCreatedRecipe(
-              RECIPE_ID,
-          );
+      const result = await client.getCreatedRecipe(RECIPE_ID);
 
-      expect(result).toEqual(
-          createdRecipe,
-      );
+      expect(result).toEqual(createdRecipe);
     });
 
-    it.each([
-      "",
-      " ",
-      ".",
-      "..",
-      "foo/bar",
-    ])(
-        "rejects invalid recipe id %j",
-        async (recipeId) => {
-          const mockFetch = vi.fn<typeof fetch>();
+    it.each(["", " ", ".", "..", "foo/bar"])(
+      "rejects invalid recipe id %j",
+      async (recipeId) => {
+        const mockFetch = vi.fn<typeof fetch>();
 
-          const client =
-              createClient(mockFetch);
+        const client = createClient(mockFetch);
 
-          await expect(
-              client.getCreatedRecipe(
-                  recipeId,
-              ),
-          ).rejects.toThrow(
-              "A valid single route segment is required for recipeId",
-          );
+        await expect(client.getCreatedRecipe(recipeId)).rejects.toThrow(
+          "A valid single route segment is required for recipeId",
+        );
 
-          expect(
-              mockFetch,
-          ).not.toHaveBeenCalled();
-        },
+        expect(mockFetch).not.toHaveBeenCalled();
+      },
     );
   });
 
@@ -301,80 +258,56 @@ describe("CookidooClient", () => {
     it("PATCHes metadata fields at the root of the request body", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(),
-      );
+      mockFetch.mockResolvedValue(createResponse());
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.patchRecipeMetadata(
-          RECIPE_ID,
-          {
-            name: "Türkçe tarif",
-            ingredients: [ingredient],
-            hints: "Yeni ipucu",
-          },
-      );
+      await client.patchRecipeMetadata(RECIPE_ID, {
+        name: "Türkçe tarif",
+        ingredients: [ingredient],
+        hints: "Yeni ipucu",
+      });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-          RECIPE_URL,
-          {
-            method: "PATCH",
-            credentials: "include",
+      expect(mockFetch).toHaveBeenCalledWith(RECIPE_URL, {
+        method: "PATCH",
+        credentials: "include",
 
-            headers: {
-              Accept:
-              FULL_RECIPE_MEDIA_TYPE,
+        headers: {
+          Accept: FULL_RECIPE_MEDIA_TYPE,
 
-              "Content-Type":
-                  "application/json",
-            },
+          "Content-Type": "application/json",
+        },
 
-            body: JSON.stringify({
-              name: "Türkçe tarif",
-              ingredients: [ingredient],
-              hints: "Yeni ipucu",
-            }),
-          },
-      );
+        body: JSON.stringify({
+          name: "Türkçe tarif",
+          ingredients: [ingredient],
+          hints: "Yeni ipucu",
+        }),
+      });
     });
 
     it("does not wrap metadata in recipe or recipeContent", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(),
-      );
+      mockFetch.mockResolvedValue(createResponse());
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.patchRecipeMetadata(
-          RECIPE_ID,
-          {
-            name: "Translated",
-          },
-      );
+      await client.patchRecipeMetadata(RECIPE_ID, {
+        name: "Translated",
+      });
 
-      const [, init] =
-          mockFetch.mock.calls[0]!;
+      const [, init] = mockFetch.mock.calls[0]!;
 
-      const body = JSON.parse(
-          String(init?.body),
-      );
+      const body = JSON.parse(String(init?.body));
 
       expect(body).toEqual({
         name: "Translated",
       });
 
-      expect(body).not.toHaveProperty(
-          "recipe",
-      );
+      expect(body).not.toHaveProperty("recipe");
 
-      expect(body).not.toHaveProperty(
-          "recipeContent",
-      );
+      expect(body).not.toHaveProperty("recipeContent");
     });
   });
 
@@ -382,92 +315,79 @@ describe("CookidooClient", () => {
     it("accepts Instruction[] and wraps it in the exact PATCH body", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(),
-      );
+      mockFetch.mockResolvedValue(createResponse());
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.patchRecipeInstructions(
-          RECIPE_ID,
-          [instruction],
-      );
+      await client.patchRecipeInstructions(RECIPE_ID, [instruction]);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-          RECIPE_URL,
-          {
-            method: "PATCH",
-            credentials: "include",
+      expect(mockFetch).toHaveBeenCalledWith(RECIPE_URL, {
+        method: "PATCH",
+        credentials: "include",
 
-            headers: {
-              Accept:
-              FULL_RECIPE_MEDIA_TYPE,
+        headers: {
+          Accept: FULL_RECIPE_MEDIA_TYPE,
 
-              "Content-Type":
-                  "application/json",
-            },
+          "Content-Type": "application/json",
+        },
 
-            body: JSON.stringify({
-              instructions: [
-                instruction,
-              ],
-            }),
-          },
-      );
+        body: JSON.stringify({
+          instructions: [instruction],
+        }),
+      });
     });
 
     it("does not add metadata fields to the instruction PATCH", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          createResponse(),
-      );
+      mockFetch.mockResolvedValue(createResponse());
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.patchRecipeInstructions(
-          RECIPE_ID,
-          [instruction],
-      );
+      await client.patchRecipeInstructions(RECIPE_ID, [instruction]);
 
-      const [, init] =
-          mockFetch.mock.calls[0]!;
+      const [, init] = mockFetch.mock.calls[0]!;
 
-      const body = JSON.parse(
-          String(init?.body),
-      );
+      const body = JSON.parse(String(init?.body));
 
-      expect(
-          Object.keys(body),
-      ).toEqual([
-        "instructions",
-      ]);
+      expect(Object.keys(body)).toEqual(["instructions"]);
     });
   });
 
   describe("HTTP errors", () => {
+    it("propagates network failures", async () => {
+      const failure = new TypeError("Failed to fetch");
+      const mockFetch = vi.fn<typeof fetch>().mockRejectedValue(failure);
+      await expect(
+        createClient(mockFetch).getCreatedRecipe(RECIPE_ID),
+      ).rejects.toBe(failure);
+    });
+
+    it("propagates malformed JSON responses", async () => {
+      const response = createResponse("not-json");
+      vi.spyOn(response, "json").mockRejectedValueOnce(
+        new SyntaxError("Unexpected token"),
+      );
+      const mockFetch = vi.fn<typeof fetch>().mockResolvedValue(response);
+      await expect(
+        createClient(mockFetch).getCreatedRecipe(RECIPE_ID),
+      ).rejects.toBeInstanceOf(SyntaxError);
+    });
+
     it("throws for a non-2xx GET response", async () => {
       const mockFetch = vi.fn<typeof fetch>();
 
       mockFetch.mockResolvedValue(
-          createResponse(undefined, {
-            status: 500,
-            statusText:
-                "Internal Server Error",
-          }),
+        createResponse(undefined, {
+          status: 500,
+          statusText: "Internal Server Error",
+        }),
       );
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await expect(
-          client.getCreatedRecipe(
-              RECIPE_ID,
-          ),
-      ).rejects.toThrow(
-          "Cookidoo request failed: 500 Internal Server Error",
+      await expect(client.getCreatedRecipe(RECIPE_ID)).rejects.toThrow(
+        "Cookidoo request failed: 500 Internal Server Error",
       );
     });
 
@@ -475,26 +395,19 @@ describe("CookidooClient", () => {
       const mockFetch = vi.fn<typeof fetch>();
 
       mockFetch.mockResolvedValue(
-          createResponse(undefined, {
-            status: 415,
-            statusText:
-                "Unsupported Media Type",
-          }),
+        createResponse(undefined, {
+          status: 415,
+          statusText: "Unsupported Media Type",
+        }),
       );
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
       await expect(
-          client.patchRecipeMetadata(
-              RECIPE_ID,
-              {
-                name: "Test",
-              },
-          ),
-      ).rejects.toThrow(
-          "Cookidoo request failed: 415 Unsupported Media Type",
-      );
+        client.patchRecipeMetadata(RECIPE_ID, {
+          name: "Test",
+        }),
+      ).rejects.toThrow("Cookidoo request failed: 415 Unsupported Media Type");
     });
 
     it("does not parse a PATCH response body", async () => {
@@ -509,19 +422,13 @@ describe("CookidooClient", () => {
 
       const mockFetch = vi.fn<typeof fetch>();
 
-      mockFetch.mockResolvedValue(
-          response,
-      );
+      mockFetch.mockResolvedValue(response);
 
-      const client =
-          createClient(mockFetch);
+      const client = createClient(mockFetch);
 
-      await client.patchRecipeMetadata(
-          RECIPE_ID,
-          {
-            name: "Test",
-          },
-      );
+      await client.patchRecipeMetadata(RECIPE_ID, {
+        name: "Test",
+      });
 
       expect(json).not.toHaveBeenCalled();
     });
