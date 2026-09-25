@@ -10,3 +10,4 @@ web-ext-artifacts
 *.jpeg
 *.gif
 *.zip
+pnpm-lock.yaml
