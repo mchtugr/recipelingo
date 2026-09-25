@@ -9,11 +9,11 @@ import {
 } from 'wxt/browser';
 
 import TranslatorPanel
-    from '../../components/TranslatorPanel';
+    from '@/components/TranslatorPanel';
 
 import {
     toTranslatorPageContext,
-} from '../../components/translator/state';
+} from '@/components/translator/state';
 
 import {
     getActiveTab,

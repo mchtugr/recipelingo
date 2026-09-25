@@ -1,5 +1,5 @@
-import { COOKIDOO_HOSTS } from '~/lib/cookidoo/domains';
-import { detectCookidooPage } from '~/lib/cookidoo/page';
+import { COOKIDOO_HOSTS } from '@/lib/cookidoo/domains';
+import { detectCookidooPage } from '@/lib/cookidoo/page';
 
 export default defineContentScript({
   matches: COOKIDOO_HOSTS.map(

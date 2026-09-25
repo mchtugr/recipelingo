@@ -1,4 +1,4 @@
-import type {KnownModeName, ModeAnnotation, TtsAnnotation} from "../../cookidoo/types";
+import type {KnownModeName, ModeAnnotation, TtsAnnotation} from "@/lib/cookidoo/types";
 
 export interface AnnotationFormatter {
   formatTts(annotation: TtsAnnotation, context?: AnnotationFormatContext): string;

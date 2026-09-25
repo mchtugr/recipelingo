@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { i18n } from "#i18n";
 
-import { CookidooClient } from "../lib/cookidoo/client";
+import { CookidooClient } from "@/lib/cookidoo/client";
 
-import { translateCreatedRecipe } from "../lib/translation/translate-created-recipe";
+import { translateCreatedRecipe } from "@/lib/translation/translate-created-recipe";
 
 import {
   createAndTranslatePublicRecipe,
   PublicRecipeTranslationError,
   type PublicRecipeTranslationProgress,
-} from "../lib/translation/create-and-translate-public-recipe";
+} from "@/lib/translation/create-and-translate-public-recipe";
 
 import {
   getPublicRecipeTranslationInput,
@@ -27,12 +27,12 @@ import {
   type TranslationLanguage,
   type TargetLanguageResolution,
   isSupportedTargetLanguage,
-} from "../lib/translation/languages";
+} from "@/lib/translation/languages";
 import {
   getTargetLanguagePreference,
   setTargetLanguagePreference,
-} from "../lib/translation/preferences";
-import { createCookidooLoginUrl } from "../lib/cookidoo/login";
+} from "@/lib/translation/preferences";
+import { createCookidooLoginUrl } from "@/lib/cookidoo/login";
 
 type TranslationUiState =
   | {

@@ -2,7 +2,7 @@ import type {
     KnownModeName,
     ModeTemperature,
     Temperature,
-} from "../../cookidoo/types";
+} from "@/lib/cookidoo/types";
 import type {AnnotationFormatter, AnnotationMessages} from "./types";
 
 function validateNonNegativeInteger(value: number, label: string): number {

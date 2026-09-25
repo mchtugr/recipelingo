@@ -1,5 +1,5 @@
 import type { Browser } from 'wxt/browser';
-import { detectCookidooPage, type CookidooPageInfo } from '../../lib/cookidoo/page';
+import { detectCookidooPage, type CookidooPageInfo } from '@/lib/cookidoo/page';
 
 export type PopupPageState =
   | { status: 'loading' }

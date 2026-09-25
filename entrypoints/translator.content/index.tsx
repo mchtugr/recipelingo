@@ -6,7 +6,7 @@ import {
 
 import {
     COOKIDOO_HOSTS,
-} from '~/lib/cookidoo/domains';
+} from '@/lib/cookidoo/domains';
 
 import App from './App';
 

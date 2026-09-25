@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CookidooAuthenticationError } from "../../lib/cookidoo/errors";
-import { RecipeLanguageDetectionError } from "../../lib/translation/detect-recipe-language";
-import { SameTranslationLanguageError } from "../../lib/translation/translate-created-recipe";
+import { CookidooAuthenticationError } from "@/lib/cookidoo/errors";
+import { RecipeLanguageDetectionError } from "@/lib/translation/detect-recipe-language";
+import { SameTranslationLanguageError } from "@/lib/translation/translate-created-recipe";
 import {
   getPublicRecipeTranslationInput,
   getTranslationErrorMessageKey,

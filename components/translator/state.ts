@@ -1,13 +1,13 @@
-import type {CookidooPageInfo} from '../../lib/cookidoo/page.ts';
-import {CookidooAuthenticationError} from '../../lib/cookidoo/errors.ts';
-import {AnnotationMarkerIntegrityError} from '../../lib/translation/translate-prepared-instruction.ts';
-import {RecipeLanguageDetectionError} from '../../lib/translation/detect-recipe-language.ts';
-import {SameTranslationLanguageError} from '../../lib/translation/translate-created-recipe.ts';
+import type {CookidooPageInfo} from '@/lib/cookidoo/page.ts';
+import {CookidooAuthenticationError} from '@/lib/cookidoo/errors.ts';
+import {AnnotationMarkerIntegrityError} from '@/lib/translation/translate-prepared-instruction.ts';
+import {RecipeLanguageDetectionError} from '@/lib/translation/detect-recipe-language.ts';
+import {SameTranslationLanguageError} from '@/lib/translation/translate-created-recipe.ts';
 import type {
     SourceLanguage,
     SupportedTargetLanguage,
     TargetLanguageResolution,
-} from '../../lib/translation/languages.ts';
+} from '@/lib/translation/languages.ts';
 
 export interface TranslatorPageContext {
     type: 'public-recipe' | 'created-recipe';

@@ -6,13 +6,13 @@ import {
 } from 'react';
 import { i18n } from '#i18n';
 
-import TranslatorPanel from '~/components/TranslatorPanel';
+import TranslatorPanel from '@/components/TranslatorPanel';
 import {
     toTranslatorPageContext,
-} from '~/components/translator/state';
+} from '@/components/translator/state';
 import {
     detectCookidooPage,
-} from '~/lib/cookidoo/page';
+} from '@/lib/cookidoo/page';
 
 export default function App() {
     const [url, setUrl] = useState(
