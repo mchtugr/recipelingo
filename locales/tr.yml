@@ -14,6 +14,11 @@ translator:
     targetLanguage: Hedef dil
     autoDetect: Otomatik algıla
     loading: Yükleniyor…
+    comingSoon: '{language} — Yakında'
+
+  unsupportedTarget:
+    title: '{language} henüz hedef dil olarak desteklenmiyor.'
+    description: '{language} tarifleri çevirmeye devam edebilirsiniz. Hedef dil {targetLanguage} olarak ayarlandı.'
 
   actions:
     translate: Tarifi çevir

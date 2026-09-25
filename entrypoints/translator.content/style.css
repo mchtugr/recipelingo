@@ -224,6 +224,24 @@
 .ct-view {
     min-width: 0;
 }
+
+.ct-info {
+    padding: 14px 16px;
+    border: 1px solid var(--ct-border);
+    border-radius: var(--ct-radius-md);
+    background: var(--ct-info-bg);
+    color: var(--ct-text);
+}
+
+.ct-info strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.ct-info p {
+    margin: 0;
+    color: var(--ct-text-muted);
+}
 /* -------------------------------------------------------------------------- */
 /* Fields                                                                      */
 /* -------------------------------------------------------------------------- */

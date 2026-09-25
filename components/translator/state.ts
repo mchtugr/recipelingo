@@ -3,7 +3,11 @@ import {CookidooAuthenticationError} from '../../lib/cookidoo/errors.ts';
 import {AnnotationMarkerIntegrityError} from '../../lib/translation/translate-prepared-instruction.ts';
 import {RecipeLanguageDetectionError} from '../../lib/translation/detect-recipe-language.ts';
 import {SameTranslationLanguageError} from '../../lib/translation/translate-created-recipe.ts';
-import type {SourceLanguage, SupportedTargetLanguage} from '../../lib/translation/languages.ts';
+import type {
+    SourceLanguage,
+    SupportedTargetLanguage,
+    TargetLanguageResolution,
+} from '../../lib/translation/languages.ts';
 
 export interface TranslatorPageContext {
     type: 'public-recipe' | 'created-recipe';
@@ -18,6 +22,30 @@ export interface PublicRecipeTranslationInput {
     publicRecipeId: string;
     sourceLanguage: SourceLanguage;
     targetLanguage: SupportedTargetLanguage;
+}
+
+export interface UnsupportedTargetWarning {
+    unsupportedLanguage: string;
+    selectedLanguage: SupportedTargetLanguage;
+}
+
+export function getUnsupportedTargetWarning(
+    resolution: TargetLanguageResolution,
+): UnsupportedTargetWarning | undefined {
+    if (
+        (
+            resolution.reason !== 'unsupported-stored-target' &&
+            resolution.reason !== 'unsupported-route-locale'
+        ) ||
+        !resolution.unsupportedLanguage
+    ) {
+        return undefined;
+    }
+
+    return {
+        unsupportedLanguage: resolution.unsupportedLanguage,
+        selectedLanguage: resolution.language,
+    };
 }
 
 export function toTranslatorPageContext(

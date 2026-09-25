@@ -2,7 +2,7 @@ import {
     useEffect,
     useState,
 } from 'react';
-import { i18n } from '#i18n';
+import {i18n} from '#i18n';
 
 import {
     CookidooClient,
@@ -21,16 +21,19 @@ import {
 import {
     getPublicRecipeTranslationInput,
     getTranslationErrorMessageKey,
+    getUnsupportedTargetWarning,
     type TranslatorErrorMessageKey,
     type TranslatorPageContext,
 } from './translator/state';
 import {
     resolveTargetLanguage,
+    COMING_SOON_TARGET_LANGUAGES,
     SUPPORTED_TARGET_LANGUAGES,
     TRANSLATION_LANGUAGES,
     type SourceLanguage,
     type SupportedTargetLanguage,
     type TranslationLanguage,
+    type TargetLanguageResolution, isSupportedTargetLanguage,
 } from '../lib/translation/languages';
 import {
     getTargetLanguagePreference,
@@ -84,8 +87,8 @@ export function appendInstructionProgress(
     total?: number,
 ): string {
     return current !== undefined &&
-        total !== undefined &&
-        current > 0
+    total !== undefined &&
+    current > 0
         ? `${message} ${current} / ${total}`
         : message;
 }
@@ -139,6 +142,17 @@ const LANGUAGE_MESSAGE_KEYS = {
     cs: 'languages.cs',
     el: 'languages.el',
 } as const satisfies Record<TranslationLanguage, `languages.${TranslationLanguage}`>;
+
+function languageName(language: string): string {
+    return Object.prototype.hasOwnProperty.call(
+        LANGUAGE_MESSAGE_KEYS,
+        language,
+    )
+        ? i18n.t(
+            LANGUAGE_MESSAGE_KEYS[language as TranslationLanguage],
+        )
+        : language.toUpperCase();
+}
 
 function instructionProgressPercent(
     progress:
@@ -198,9 +212,14 @@ function TranslatorPanel({
     ] = useState<SourceLanguage>('auto');
 
     const [
-        targetLanguage,
-        setTargetLanguage,
-    ] = useState<SupportedTargetLanguage | null>(null);
+        targetResolution,
+        setTargetResolution,
+    ] = useState<TargetLanguageResolution | null>(null);
+
+    const targetLanguage = targetResolution?.language ?? null;
+    const unsupportedTargetWarning = targetResolution
+        ? getUnsupportedTargetWarning(targetResolution)
+        : undefined;
 
     const [
         translation,
@@ -223,14 +242,17 @@ function TranslatorPanel({
 
     useEffect(() => {
         let active = true;
-        setTargetLanguage(null);
+        setTargetResolution(null);
         void getTargetLanguagePreference()
             .catch(() => undefined)
             .then((savedTargetLanguage) => {
                 if (active) {
-                    setTargetLanguage(resolveTargetLanguage({
-                        locale: page.locale,
-                        savedTargetLanguage,
+                    setTargetResolution(resolveTargetLanguage({
+                        routeLocale: page.locale,
+                        storedTarget: savedTargetLanguage,
+                        uiLocale: typeof navigator === 'undefined'
+                            ? undefined
+                            : navigator.language,
                     }));
                 }
             });
@@ -400,11 +422,11 @@ function TranslatorPanel({
                 status: 'error',
 
                 messageKey: messageKey ===
-                    'translator.error.authenticationRequired'
-                        ? messageKey
-                        : isPublic
-                            ? 'translator.error.importFailed'
-                            : messageKey,
+                'translator.error.authenticationRequired'
+                    ? messageKey
+                    : isPublic
+                        ? 'translator.error.importFailed'
+                        : messageKey,
             });
         }
     }
@@ -420,10 +442,16 @@ function TranslatorPanel({
     }
 
     function handleTargetChange(value: string) {
-        const language = value as SupportedTargetLanguage;
-        setTargetLanguage(language);
+        if (!isSupportedTargetLanguage(value)) {
+            return;
+        }
+
+        setTargetResolution({
+            language: value,
+            reason: 'stored-target',
+        });
         setTranslation({status: 'idle'});
-        void setTargetLanguagePreference(language).catch(() => {
+        void setTargetLanguagePreference(value).catch(() => {
             // The in-memory selection remains usable when extension storage fails.
         });
     }
@@ -469,6 +497,31 @@ function TranslatorPanel({
                             i18n.t('translator.intro.publicRecipe')
                         )}
                 </p>
+
+                {unsupportedTargetWarning && (
+                    <aside
+                        className="ct-info"
+                        role="status"
+                    >
+                        <strong>
+                            {i18n.t('translator.unsupportedTarget.title', {
+                                language: languageName(
+                                    unsupportedTargetWarning.unsupportedLanguage,
+                                ),
+                            })}
+                        </strong>
+                        <p>
+                            {i18n.t('translator.unsupportedTarget.description', {
+                                language: languageName(
+                                    unsupportedTargetWarning.unsupportedLanguage,
+                                ),
+                                targetLanguage: languageName(
+                                    unsupportedTargetWarning.selectedLanguage,
+                                ),
+                            })}
+                        </p>
+                    </aside>
+                )}
 
                 <div className="fields">
                     <div className="field">
@@ -525,6 +578,13 @@ function TranslatorPanel({
                             {SUPPORTED_TARGET_LANGUAGES.map((code) => (
                                 <option key={code} value={code}>
                                     {i18n.t(LANGUAGE_MESSAGE_KEYS[code])}
+                                </option>
+                            ))}
+                            {COMING_SOON_TARGET_LANGUAGES.map((code) => (
+                                <option key={code} value={code} disabled>
+                                    {i18n.t('translator.fields.comingSoon', {
+                                        language: i18n.t(LANGUAGE_MESSAGE_KEYS[code]),
+                                    })}
                                 </option>
                             ))}
                         </select>
