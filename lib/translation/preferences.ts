@@ -1,5 +1,5 @@
-import {browser} from "wxt/browser";
-import type {SupportedTargetLanguage} from "./languages";
+import { browser } from "wxt/browser";
+import type { SupportedTargetLanguage } from "./languages";
 
 const TARGET_LANGUAGE_KEY = "targetLanguage";
 
@@ -24,5 +24,5 @@ export async function setTargetLanguagePreference(
   language: SupportedTargetLanguage,
   storage: TargetLanguageStorage = defaultStorage(),
 ): Promise<void> {
-  await storage.set({[TARGET_LANGUAGE_KEY]: language});
+  await storage.set({ [TARGET_LANGUAGE_KEY]: language });
 }

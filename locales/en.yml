@@ -14,11 +14,11 @@ translator:
     targetLanguage: Target language
     autoDetect: Detect automatically
     loading: Loading…
-    comingSoon: '{language} — Coming soon'
+    comingSoon: "{language} — Coming soon"
 
   unsupportedTarget:
     title: "{language} isn't available as a target language yet."
-    description: 'You can still translate recipes from {language}. The target language has been set to {targetLanguage}.'
+    description: "You can still translate recipes from {language}. The target language has been set to {targetLanguage}."
 
   actions:
     translate: Translate recipe
@@ -45,7 +45,7 @@ translator:
     preparingModel: Preparing language model…
     keepOpen: Keep this window open until translation is complete.
     label: Translation progress
-    labelPercent: 'Translation progress: {percent}%'
+    labelPercent: "Translation progress: {percent}%"
 
   success:
     title: Recipe translated successfully

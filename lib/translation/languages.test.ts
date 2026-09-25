@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   getLanguageFromLocale,
   normalizeLocaleLanguage,
@@ -7,7 +7,14 @@ import {
 } from "./languages";
 
 it("supports exactly the v1 target languages", () => {
-  expect([...SUPPORTED_TARGET_LANGUAGES].sort()).toEqual(["de", "en", "es", "fr", "it", "tr"]);
+  expect([...SUPPORTED_TARGET_LANGUAGES].sort()).toEqual([
+    "de",
+    "en",
+    "es",
+    "fr",
+    "it",
+    "tr",
+  ]);
 });
 
 describe("getLanguageFromLocale", () => {
@@ -51,26 +58,32 @@ describe("normalizeLocaleLanguage", () => {
 
 describe("resolveTargetLanguage", () => {
   it("uses a supported route locale when no target is stored", () => {
-    expect(resolveTargetLanguage({
-      routeLocale: "fr-FR",
-      uiLocale: "tr-TR",
-    })).toEqual({language: "fr", reason: "route-locale"});
+    expect(
+      resolveTargetLanguage({
+        routeLocale: "fr-FR",
+        uiLocale: "tr-TR",
+      }),
+    ).toEqual({ language: "fr", reason: "route-locale" });
   });
 
   it("uses a supported stored target before route and UI locales", () => {
-    expect(resolveTargetLanguage({
-      storedTarget: "tr",
-      routeLocale: "pl-PL",
-      uiLocale: "en-US",
-    })).toEqual({language: "tr", reason: "stored-target"});
+    expect(
+      resolveTargetLanguage({
+        storedTarget: "tr",
+        routeLocale: "pl-PL",
+        uiLocale: "en-US",
+      }),
+    ).toEqual({ language: "tr", reason: "stored-target" });
   });
 
   it("ignores an unsupported stored target and continues the fallback order", () => {
-    expect(resolveTargetLanguage({
-      storedTarget: "pl",
-      routeLocale: "de-DE",
-      uiLocale: "tr-TR",
-    })).toEqual({
+    expect(
+      resolveTargetLanguage({
+        storedTarget: "pl",
+        routeLocale: "de-DE",
+        uiLocale: "tr-TR",
+      }),
+    ).toEqual({
       language: "de",
       reason: "unsupported-stored-target",
       unsupportedLanguage: "pl",
@@ -78,10 +91,12 @@ describe("resolveTargetLanguage", () => {
   });
 
   it("uses a supported UI locale after an unsupported route locale", () => {
-    expect(resolveTargetLanguage({
-      routeLocale: "pl-PL",
-      uiLocale: "tr-TR",
-    })).toEqual({
+    expect(
+      resolveTargetLanguage({
+        routeLocale: "pl-PL",
+        uiLocale: "tr-TR",
+      }),
+    ).toEqual({
       language: "tr",
       reason: "unsupported-route-locale",
       unsupportedLanguage: "pl",
@@ -89,11 +104,13 @@ describe("resolveTargetLanguage", () => {
   });
 
   it("reports an unsupported stored target while using the UI fallback", () => {
-    expect(resolveTargetLanguage({
-      storedTarget: "pl",
-      routeLocale: "pl-PL",
-      uiLocale: "tr-TR",
-    })).toEqual({
+    expect(
+      resolveTargetLanguage({
+        storedTarget: "pl",
+        routeLocale: "pl-PL",
+        uiLocale: "tr-TR",
+      }),
+    ).toEqual({
       language: "tr",
       reason: "unsupported-stored-target",
       unsupportedLanguage: "pl",
@@ -101,10 +118,12 @@ describe("resolveTargetLanguage", () => {
   });
 
   it("falls back to English when route and UI locales are unsupported", () => {
-    expect(resolveTargetLanguage({
-      routeLocale: "pl-PL",
-      uiLocale: "nl-NL",
-    })).toEqual({
+    expect(
+      resolveTargetLanguage({
+        routeLocale: "pl-PL",
+        uiLocale: "nl-NL",
+      }),
+    ).toEqual({
       language: "en",
       reason: "unsupported-route-locale",
       unsupportedLanguage: "pl",

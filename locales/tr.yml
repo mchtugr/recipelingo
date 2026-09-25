@@ -14,11 +14,11 @@ translator:
     targetLanguage: Hedef dil
     autoDetect: Otomatik algıla
     loading: Yükleniyor…
-    comingSoon: '{language} — Yakında'
+    comingSoon: "{language} — Yakında"
 
   unsupportedTarget:
-    title: '{language} henüz hedef dil olarak desteklenmiyor.'
-    description: '{language} tarifleri çevirmeye devam edebilirsiniz. Hedef dil {targetLanguage} olarak ayarlandı.'
+    title: "{language} henüz hedef dil olarak desteklenmiyor."
+    description: "{language} tarifleri çevirmeye devam edebilirsiniz. Hedef dil {targetLanguage} olarak ayarlandı."
 
   actions:
     translate: Tarifi çevir
@@ -45,7 +45,7 @@ translator:
     preparingModel: Dil modeli hazırlanıyor…
     keepOpen: Çeviri tamamlanana kadar bu pencereyi açık tutun.
     label: Çeviri ilerlemesi
-    labelPercent: 'Çeviri ilerlemesi: yüzde {percent}'
+    labelPercent: "Çeviri ilerlemesi: yüzde {percent}"
 
   success:
     title: Tarif başarıyla çevrildi

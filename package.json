@@ -11,6 +11,10 @@
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "compile": "tsc --noEmit",
     "test": "vitest run",
     "postinstall": "wxt prepare"
@@ -20,12 +24,20 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@types/dom-chromium-ai": "^0.0.17",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@wxt-dev/i18n": "^0.2.7",
     "@wxt-dev/module-react": "^1.1.5",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.9.9",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.1",
     "vitest": "^5.0.1",
     "web-ext": "^10.5.0",
     "wxt": "^0.21.3"

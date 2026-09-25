@@ -1,10 +1,7 @@
-import { isCookidooHostname } from './domains.ts';
+import { isCookidooHostname } from "./domains.ts";
 
 export type CookidooPageType =
-  | 'public-recipe'
-  | 'created-recipe'
-  | 'cookidoo'
-  | 'other';
+  "public-recipe" | "created-recipe" | "cookidoo" | "other";
 
 export interface CookidooPageInfo {
   type: CookidooPageType;
@@ -17,24 +14,22 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   let parsedUrl: URL;
 
   try {
-    parsedUrl = typeof url === 'string' ? new URL(url) : url;
+    parsedUrl = typeof url === "string" ? new URL(url) : url;
   } catch {
-    return { type: 'other' };
+    return { type: "other" };
   }
 
   if (!isCookidooHostname(parsedUrl.hostname)) {
-    return { type: 'other' };
+    return { type: "other" };
   }
 
-  const segments = parsedUrl.pathname.split('/').filter(Boolean);
+  const segments = parsedUrl.pathname.split("/").filter(Boolean);
   const [firstSegment, secondSegment, thirdSegment, fourthSegment] = segments;
 
-  console.log({parsedUrl})
+  console.log({ parsedUrl });
   if (
-      parsedUrl.protocol !== "https:" ||
-      !isCookidooHostname(
-          parsedUrl.hostname,
-      )
+    parsedUrl.protocol !== "https:" ||
+    !isCookidooHostname(parsedUrl.hostname)
   ) {
     return {
       type: "other",
@@ -43,13 +38,13 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
 
   if (
     segments.length === 4 &&
-    firstSegment === 'recipes' &&
-    secondSegment === 'recipe' &&
+    firstSegment === "recipes" &&
+    secondSegment === "recipe" &&
     thirdSegment !== undefined &&
     fourthSegment !== undefined
   ) {
     return {
-      type: 'public-recipe',
+      type: "public-recipe",
       hostname: parsedUrl.hostname,
       locale: thirdSegment,
       recipeId: fourthSegment,
@@ -57,20 +52,20 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   }
 
   const isCreatedRecipePath =
-    firstSegment === 'created-recipes' &&
+    firstSegment === "created-recipes" &&
     secondSegment !== undefined &&
     thirdSegment !== undefined &&
     (segments.length === 3 ||
-      (segments.length === 4 && fourthSegment === 'edit'));
+      (segments.length === 4 && fourthSegment === "edit"));
 
   if (isCreatedRecipePath) {
     return {
-      type: 'created-recipe',
+      type: "created-recipe",
       hostname: parsedUrl.hostname,
       locale: secondSegment,
       recipeId: thirdSegment,
     };
   }
 
-  return { type: 'cookidoo', hostname: parsedUrl.hostname };
+  return { type: "cookidoo", hostname: parsedUrl.hostname };
 }

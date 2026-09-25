@@ -32,9 +32,9 @@ bruno/
 
 ## Requirements
 
-* Bruno
-* A valid Cookidoo account
-* An authenticated Cookidoo browser session
+- Bruno
+- A valid Cookidoo account
+- An authenticated Cookidoo browser session
 
 ## Environment
 
@@ -272,10 +272,10 @@ Script-generated requests can also be inspected in Bruno's Timeline.
 
 Never commit:
 
-* `_oauth2_proxy`
-* `v-authenticated`
-* other Cookidoo session cookies
-* passwords or login credentials
+- `_oauth2_proxy`
+- `v-authenticated`
+- other Cookidoo session cookies
+- passwords or login credentials
 
 Treat authentication cookies like credentials.
 

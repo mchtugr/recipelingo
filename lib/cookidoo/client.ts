@@ -1,13 +1,9 @@
 import { isCookidooHostname } from "./domains";
 import { CookidooAuthenticationError } from "./errors";
-import type {
-  CreatedRecipe,
-  Instruction,
-  RecipeMetadataPatch,
-} from "./types";
+import type { CreatedRecipe, Instruction, RecipeMetadataPatch } from "./types";
 
 const FULL_RECIPE_MEDIA_TYPE =
-    "application/vnd.vorwerk.customer-recipe.full+json";
+  "application/vnd.vorwerk.customer-recipe.full+json";
 
 export interface CookidooClientOptions {
   hostname: string;
@@ -20,51 +16,32 @@ export class CookidooClient {
   private readonly locale: string;
   private readonly request: typeof fetch;
 
-  constructor({
-                hostname,
-                locale,
-                fetch: request,
-              }: CookidooClientOptions) {
+  constructor({ hostname, locale, fetch: request }: CookidooClientOptions) {
     if (!isCookidooHostname(hostname)) {
-      throw new TypeError(
-          `Unsupported Cookidoo hostname: ${hostname}`,
-      );
+      throw new TypeError(`Unsupported Cookidoo hostname: ${hostname}`);
     }
 
-    assertRouteSegment(
-        locale,
-        "locale",
-    );
+    assertRouteSegment(locale, "locale");
 
-    this.origin =
-        `https://${hostname.toLowerCase()}`;
+    this.origin = `https://${hostname.toLowerCase()}`;
 
     this.locale = locale;
     this.request = request ?? globalThis.fetch.bind(globalThis);
   }
 
-  async getCreatedRecipe(
-      recipeId: string,
-  ): Promise<CreatedRecipe> {
-    const response =
-        await this.request(
-            this.recipeUrl(recipeId),
-            {
-              method: "GET",
-              credentials: "include",
+  async getCreatedRecipe(recipeId: string): Promise<CreatedRecipe> {
+    const response = await this.request(this.recipeUrl(recipeId), {
+      method: "GET",
+      credentials: "include",
 
-              headers: {
-                Accept:
-                FULL_RECIPE_MEDIA_TYPE,
-              },
-            },
-        );
+      headers: {
+        Accept: FULL_RECIPE_MEDIA_TYPE,
+      },
+    });
 
     this.assertOk(response);
 
-    return (
-        await response.json()
-    ) as CreatedRecipe;
+    return (await response.json()) as CreatedRecipe;
   }
 
   /** Imports a public Cookidoo recipe using the request captured from Cookidoo's UI. */
@@ -76,8 +53,11 @@ export class CookidooClient {
       {
         method: "POST",
         credentials: "include",
-        headers: {Accept: "application/json", "Content-Type": "application/json"},
-        body: JSON.stringify({recipeUrl, partnerId: "cookidoo"}),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ recipeUrl, partnerId: "cookidoo" }),
       },
     );
     this.assertOk(response);
@@ -89,87 +69,60 @@ export class CookidooClient {
   }
 
   patchRecipeMetadata(
-      recipeId: string,
-      metadata: RecipeMetadataPatch,
+    recipeId: string,
+    metadata: RecipeMetadataPatch,
   ): Promise<void> {
-    return this.patch(
-        recipeId,
-        metadata,
-    );
+    return this.patch(recipeId, metadata);
   }
 
   patchRecipeInstructions(
-      recipeId: string,
-      instructions: Instruction[],
+    recipeId: string,
+    instructions: Instruction[],
   ): Promise<void> {
-    return this.patch(
-        recipeId,
-        {
-          instructions,
-        },
-    );
+    return this.patch(recipeId, {
+      instructions,
+    });
   }
 
   private async patch(
-      recipeId: string,
-      fields:
-          | RecipeMetadataPatch
-          | { instructions: Instruction[] },
+    recipeId: string,
+    fields: RecipeMetadataPatch | { instructions: Instruction[] },
   ): Promise<void> {
-    const response =
-        await this.request(
-            this.recipeUrl(recipeId),
-            {
-              method: "PATCH",
-              credentials: "include",
+    const response = await this.request(this.recipeUrl(recipeId), {
+      method: "PATCH",
+      credentials: "include",
 
-              headers: {
-                Accept:
-                FULL_RECIPE_MEDIA_TYPE,
+      headers: {
+        Accept: FULL_RECIPE_MEDIA_TYPE,
 
-                "Content-Type":
-                    "application/json",
-              },
+        "Content-Type": "application/json",
+      },
 
-              body:
-                  JSON.stringify(fields),
-            },
-        );
+      body: JSON.stringify(fields),
+    });
 
     this.assertOk(response);
   }
 
-  private recipeUrl(
-      recipeId: string,
-  ): string {
-    assertRouteSegment(
-        recipeId,
-        "recipeId",
-    );
+  private recipeUrl(recipeId: string): string {
+    assertRouteSegment(recipeId, "recipeId");
 
     return (
-        `${this.origin}/created-recipes/` +
-        `${encodeURIComponent(this.locale)}/` +
-        `${encodeURIComponent(recipeId)}`
+      `${this.origin}/created-recipes/` +
+      `${encodeURIComponent(this.locale)}/` +
+      `${encodeURIComponent(recipeId)}`
     );
   }
 
-  private assertOk(
-      response: Response,
-  ): void {
+  private assertOk(response: Response): void {
     if (response.status === 401) {
       throw new CookidooAuthenticationError();
     }
 
     if (!response.ok) {
-      const status =
-          response.statusText
-              ? ` ${response.statusText}`
-              : "";
+      const status = response.statusText ? ` ${response.statusText}` : "";
 
-      throw new Error(
-          `Cookidoo request failed: ${response.status}${status}`,
-      );
+      throw new Error(`Cookidoo request failed: ${response.status}${status}`);
     }
   }
 }
@@ -178,25 +131,23 @@ interface CreatedRecipeImportResponse {
   recipeId: string;
 }
 
-function isCreatedRecipeImportResponse(value: unknown): value is CreatedRecipeImportResponse {
-  if (typeof value !== "object" || value === null || !("recipeId" in value)) return false;
+function isCreatedRecipeImportResponse(
+  value: unknown,
+): value is CreatedRecipeImportResponse {
+  if (typeof value !== "object" || value === null || !("recipeId" in value))
+    return false;
   const recipeId = value.recipeId;
-  return typeof recipeId === "string" && Boolean(recipeId.trim()) &&
-    recipeId !== "." && recipeId !== ".." && !recipeId.includes("/");
+  return (
+    typeof recipeId === "string" &&
+    Boolean(recipeId.trim()) &&
+    recipeId !== "." &&
+    recipeId !== ".." &&
+    !recipeId.includes("/")
+  );
 }
 
-function assertRouteSegment(
-    value: string,
-    name: string,
-): void {
-  if (
-      !value.trim() ||
-      value === "." ||
-      value === ".." ||
-      value.includes("/")
-  ) {
-    throw new TypeError(
-        `A valid single route segment is required for ${name}`,
-    );
+function assertRouteSegment(value: string, name: string): void {
+  if (!value.trim() || value === "." || value === ".." || value.includes("/")) {
+    throw new TypeError(`A valid single route segment is required for ${name}`);
   }
 }

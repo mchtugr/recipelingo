@@ -1,4 +1,4 @@
-import {SUPPORTED_ANNOTATION_LANGUAGES} from "./annotation-formatters";
+import { SUPPORTED_ANNOTATION_LANGUAGES } from "./annotation-formatters";
 
 export const TRANSLATION_LANGUAGES = [
   "tr",
@@ -14,12 +14,12 @@ export const TRANSLATION_LANGUAGES = [
   "el",
 ] as const;
 
-export type TranslationLanguage = typeof TRANSLATION_LANGUAGES[number];
+export type TranslationLanguage = (typeof TRANSLATION_LANGUAGES)[number];
 export type SourceLanguage = "auto" | TranslationLanguage;
 
-export const SUPPORTED_TARGET_LANGUAGES =
-    SUPPORTED_ANNOTATION_LANGUAGES;
-export type SupportedTargetLanguage = typeof SUPPORTED_TARGET_LANGUAGES[number];
+export const SUPPORTED_TARGET_LANGUAGES = SUPPORTED_ANNOTATION_LANGUAGES;
+export type SupportedTargetLanguage =
+  (typeof SUPPORTED_TARGET_LANGUAGES)[number];
 
 export const COMING_SOON_TARGET_LANGUAGES = ["pl", "pt"] as const;
 
@@ -37,9 +37,7 @@ export interface TargetLanguageResolution {
   unsupportedLanguage?: string;
 }
 
-export function normalizeLocaleLanguage(
-    locale: string,
-): string | undefined {
+export function normalizeLocaleLanguage(locale: string): string | undefined {
   const normalized = locale.trim().replace(/_/g, "-");
 
   if (/^zh-(hans|cn|sg)(?:-|$)/i.test(normalized)) {
@@ -54,14 +52,18 @@ export function normalizeLocaleLanguage(
   return language || undefined;
 }
 
-export function getLanguageFromLocale(locale: string): TranslationLanguage | undefined {
+export function getLanguageFromLocale(
+  locale: string,
+): TranslationLanguage | undefined {
   const language = normalizeLocaleLanguage(locale);
   return TRANSLATION_LANGUAGES.some((code) => code === language)
-    ? language as TranslationLanguage
+    ? (language as TranslationLanguage)
     : undefined;
 }
 
-export function isSupportedTargetLanguage(value: string): value is SupportedTargetLanguage {
+export function isSupportedTargetLanguage(
+  value: string,
+): value is SupportedTargetLanguage {
   return (SUPPORTED_TARGET_LANGUAGES as readonly string[]).includes(value);
 }
 
@@ -80,7 +82,7 @@ export function resolveTargetLanguage({
     supportedTargets.includes(value as SupportedTargetLanguage);
 
   if (storedTarget && isSupported(storedTarget)) {
-    return {language: storedTarget, reason: "stored-target"};
+    return { language: storedTarget, reason: "stored-target" };
   }
 
   const unsupportedStoredTarget = storedTarget
@@ -89,15 +91,16 @@ export function resolveTargetLanguage({
   const routeLanguage = normalizeLocaleLanguage(routeLocale);
 
   if (!unsupportedStoredTarget && routeLanguage && isSupported(routeLanguage)) {
-    return {language: routeLanguage, reason: "route-locale"};
+    return { language: routeLanguage, reason: "route-locale" };
   }
 
   const uiLanguage = uiLocale ? normalizeLocaleLanguage(uiLocale) : undefined;
-  const language = routeLanguage && isSupported(routeLanguage)
-    ? routeLanguage
-    : uiLanguage && isSupported(uiLanguage)
-      ? uiLanguage
-      : "en";
+  const language =
+    routeLanguage && isSupported(routeLanguage)
+      ? routeLanguage
+      : uiLanguage && isSupported(uiLanguage)
+        ? uiLanguage
+        : "en";
 
   if (unsupportedStoredTarget) {
     return {
@@ -117,8 +120,7 @@ export function resolveTargetLanguage({
 
   return {
     language,
-    reason: uiLanguage && isSupported(uiLanguage)
-      ? "ui-locale"
-      : "english-fallback",
+    reason:
+      uiLanguage && isSupported(uiLanguage) ? "ui-locale" : "english-fallback",
   };
 }

@@ -1,86 +1,63 @@
-import ReactDOM from 'react-dom/client';
+import ReactDOM from "react-dom/client";
 
-import {
-    createShadowRootUi,
-} from 'wxt/utils/content-script-ui/shadow-root';
+import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root";
 
-import {
-    COOKIDOO_HOSTS,
-} from '@/lib/cookidoo/domains';
+import { COOKIDOO_HOSTS } from "@/lib/cookidoo/domains";
 
-import App from './App';
+import App from "./App";
 
-import './style.css';
+import "./style.css";
 
 export default defineContentScript({
-    matches: COOKIDOO_HOSTS.map(
-        (hostname) =>
-            `https://${hostname}/*` as const,
-    ),
+  matches: COOKIDOO_HOSTS.map((hostname) => `https://${hostname}/*` as const),
 
-    cssInjectionMode: 'ui',
+  cssInjectionMode: "ui",
 
-    async main(ctx) {
-        const ui =
-            await createShadowRootUi(ctx, {
-                name:
-                    'cookidoo-translator-ui',
+  async main(ctx) {
+    const ui = await createShadowRootUi(ctx, {
+      name: "cookidoo-translator-ui",
 
-                position: 'overlay',
+      position: "overlay",
 
-                anchor: 'body',
+      anchor: "body",
 
-                zIndex: 2147483000,
+      zIndex: 2147483000,
 
-                isolateEvents: [
-                    'keydown',
-                    'keyup',
-                    'keypress',
-                    'click',
-                    'mousedown',
-                    'mouseup',
-                    'pointerdown',
-                    'pointerup',
-                ],
+      isolateEvents: [
+        "keydown",
+        "keyup",
+        "keypress",
+        "click",
+        "mousedown",
+        "mouseup",
+        "pointerdown",
+        "pointerup",
+      ],
 
-                onMount(
-                    container,
-                    _shadow,
-                    host,
-                ) {
-                    const pageFontFamily =
-                        getComputedStyle(
-                            document.body,
-                        ).fontFamily;
+      onMount(container, _shadow, host) {
+        const pageFontFamily = getComputedStyle(document.body).fontFamily;
 
-                    host.style.setProperty(
-                        '--ct-font-family',
-                        pageFontFamily ||
-                        'Arial, Helvetica, sans-serif',
-                    );
+        host.style.setProperty(
+          "--ct-font-family",
+          pageFontFamily || "Arial, Helvetica, sans-serif",
+        );
 
-                    const element =
-                        document.createElement(
-                            'div',
-                        );
+        const element = document.createElement("div");
 
-                    container.append(element);
+        container.append(element);
 
-                    const root =
-                        ReactDOM.createRoot(
-                            element,
-                        );
+        const root = ReactDOM.createRoot(element);
 
-                    root.render(<App/>);
+        root.render(<App />);
 
-                    return root;
-                },
+        return root;
+      },
 
-                onRemove(root) {
-                    root?.unmount();
-                },
-            });
+      onRemove(root) {
+        root?.unmount();
+      },
+    });
 
-        ui.mount();
-    },
+    ui.mount();
+  },
 });

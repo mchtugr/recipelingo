@@ -10,7 +10,6 @@ http:
     - name: Accept
       value: application/json
 
-
 runtime:
   variables:
     - name: selectedRecipeIds

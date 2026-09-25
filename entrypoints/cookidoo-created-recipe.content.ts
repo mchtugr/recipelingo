@@ -1,5 +1,5 @@
-import { COOKIDOO_HOSTS } from '@/lib/cookidoo/domains';
-import { detectCookidooPage } from '@/lib/cookidoo/page';
+import { COOKIDOO_HOSTS } from "@/lib/cookidoo/domains";
+import { detectCookidooPage } from "@/lib/cookidoo/page";
 
 export default defineContentScript({
   matches: COOKIDOO_HOSTS.map(
@@ -8,11 +8,8 @@ export default defineContentScript({
   main() {
     const pageInfo = detectCookidooPage(window.location.href);
 
-    if (pageInfo.type === 'created-recipe') {
-      console.info(
-        '[Cookidoo Translator] Created recipe detected',
-        pageInfo,
-      );
+    if (pageInfo.type === "created-recipe") {
+      console.info("[Cookidoo Translator] Created recipe detected", pageInfo);
     }
   },
 });

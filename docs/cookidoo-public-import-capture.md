@@ -8,19 +8,19 @@ Authentication headers, cookies, session values, and other sensitive credentials
 
 ### Request
 
-* URL:
+- URL:
 
   `https://cookidoo.com.tr/created-recipes/tr-TR/add-to-cookidoo`
 
-* Method:
+- Method:
 
   `POST`
 
-* `Accept`:
+- `Accept`:
 
   `application/json`
 
-* `Content-Type`:
+- `Content-Type`:
 
   `application/json`
 
@@ -50,11 +50,11 @@ public recipe ID: r912684
 
 ## Successful response
 
-* Status:
+- Status:
 
   `200 OK`
 
-* `Content-Type`:
+- `Content-Type`:
 
   `application/json; charset=utf-8`
 

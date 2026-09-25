@@ -1,6 +1,6 @@
 export interface AnnotationPosition {
-    offset: number;
-    length: number;
+  offset: number;
+  length: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -8,69 +8,69 @@ export interface AnnotationPosition {
 /* -------------------------------------------------------------------------- */
 
 export interface CreatedRecipe {
-    recipeId: string;
+  recipeId: string;
 
-    authorId?: string;
-    parentRecipeId?: string;
+  authorId?: string;
+  parentRecipeId?: string;
 
-    modifiedAt?: string;
-    createdAt?: string;
+  modifiedAt?: string;
+  createdAt?: string;
 
-    status?: string;  // "ACTIVE"
-    workStatus?: string; // "PRIVATE"
+  status?: string; // "ACTIVE"
+  workStatus?: string; // "PRIVATE"
 
-    recipeContent: RecipeContent;
+  recipeContent: RecipeContent;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface RecipeContent {
-    name: string;
+  name: string;
 
-    image?: string;
+  image?: string;
 
-    ingredients: Ingredient[];
-    instructions: Instruction[];
+  ingredients: Ingredient[];
+  instructions: Instruction[];
 
-    descriptiveAssets?: DescriptiveAsset[];
+  descriptiveAssets?: DescriptiveAsset[];
 
-    isImageCopyrightOwned?: boolean;
-    isBasedOn?: string;
+  isImageCopyrightOwned?: boolean;
+  isBasedOn?: string;
 
-    author?: RecipeAuthor;
+  author?: RecipeAuthor;
 
-    prepTime?: number;
-    totalTime?: number;
+  prepTime?: number;
+  totalTime?: number;
 
-    tools?: string[];
+  tools?: string[];
 
-    yield?: RecipeYield;
+  yield?: RecipeYield;
 
-    hints?: string;
+  hints?: string;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface RecipeAuthor {
-    type: string;
-    name: string;
+  type: string;
+  name: string;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface RecipeYield {
-    value: number;
-    unitText: string;
+  value: number;
+  unitText: string;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface DescriptiveAsset {
-    square?: string;
-    portrait?: string;
-    landscape?: string;
+  square?: string;
+  portrait?: string;
+  landscape?: string;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,10 +78,10 @@ export interface DescriptiveAsset {
 /* -------------------------------------------------------------------------- */
 
 export interface Ingredient {
-    type: "INGREDIENT";
-    text: string;
+  type: "INGREDIENT";
+  text: string;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -89,52 +89,50 @@ export interface Ingredient {
 /* -------------------------------------------------------------------------- */
 
 export interface Instruction {
-    type: "STEP";
-    text: string;
-    annotations: Annotation[];
+  type: "STEP";
+  text: string;
+  annotations: Annotation[];
 
-    missedUsages?: unknown[];
+  missedUsages?: unknown[];
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
 /* TTS                                                                         */
 /* -------------------------------------------------------------------------- */
 
-export type Direction =
-    | "CW"
-    | "CCW";
+export type Direction = "CW" | "CCW";
 
 export type Temperature =
-    | {
-    value: "varoma";
-    unit?: never;
-}
-    | {
-    value: string;
-    unit: "C" | "F";
-};
+  | {
+      value: "varoma";
+      unit?: never;
+    }
+  | {
+      value: string;
+      unit: "C" | "F";
+    };
 
 export interface TtsData {
-    /** Duration in seconds. */
-    time?: number;
+  /** Duration in seconds. */
+  time?: number;
 
-    /** Thermomix blade speed, e.g. "1", "3.5", "5". */
-    speed?: string;
+  /** Thermomix blade speed, e.g. "1", "3.5", "5". */
+  speed?: string;
 
-    temperature?: Temperature;
-    direction?: Direction;
+  temperature?: Temperature;
+  direction?: Direction;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface TtsAnnotation {
-    type: "TTS";
-    position: AnnotationPosition;
-    data: TtsData;
+  type: "TTS";
+  position: AnnotationPosition;
+  data: TtsData;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,66 +140,63 @@ export interface TtsAnnotation {
 /* -------------------------------------------------------------------------- */
 
 export type KnownModeName =
-    | "egg_boiler"
-    | "blend"
-    | "rice_cooker"
-    | "sous_vide"
-    | "slow_cook"
-    | "browning"
-    | "sugar_stages"
-    | "fermentation"
-    | "dough"
-    | "thicken"
-    | "open cooking"
-    | "pre_clean"
-    | "warm_up"
-    | "kettle"
-    | "peeler"
-    | "turbo"
-    | "slicing"
-    | "grating"
-    | "spiralizing";
+  | "egg_boiler"
+  | "blend"
+  | "rice_cooker"
+  | "sous_vide"
+  | "slow_cook"
+  | "browning"
+  | "sugar_stages"
+  | "fermentation"
+  | "dough"
+  | "thicken"
+  | "open cooking"
+  | "pre_clean"
+  | "warm_up"
+  | "kettle"
+  | "peeler"
+  | "turbo"
+  | "slicing"
+  | "grating"
+  | "spiralizing";
 
 export type ModeName = KnownModeName | (string & {});
 
-export type ModePower =
-    | "Intense"
-    | "Gentle"
-    | (string & {});
+export type ModePower = "Intense" | "Gentle" | (string & {});
 
 export interface ModeTemperature {
-    value: string;
-    unit?: "C" | "F";
+  value: string;
+  unit?: "C" | "F";
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface ModeData {
-    time?: number;
-    speed?: string;
-    temperature?: ModeTemperature;
-    power?: ModePower;
-    pulseCount?: number;
-    pulseCountMax?: number;
+  time?: number;
+  speed?: string;
+  temperature?: ModeTemperature;
+  power?: ModePower;
+  pulseCount?: number;
+  pulseCountMax?: number;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 export interface ModeAnnotation {
-    type: "MODE";
+  type: "MODE";
 
-    /**
-     * Known values include dough, turbo, blend, warm_up, rice_cooker, etc.
-     *
-     * Keep this open because Cookidoo may introduce additional modes and
-     * the formatter decides which modes it can safely restore.
-     */
-    name: ModeName;
+  /**
+   * Known values include dough, turbo, blend, warm_up, rice_cooker, etc.
+   *
+   * Keep this open because Cookidoo may introduce additional modes and
+   * the formatter decides which modes it can safely restore.
+   */
+  name: ModeName;
 
-    position: AnnotationPosition;
-    data?: ModeData;
+  position: AnnotationPosition;
+  data?: ModeData;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -209,48 +204,46 @@ export interface ModeAnnotation {
 /* -------------------------------------------------------------------------- */
 
 export interface VolumeAnnotation {
-    type: "VOLUME";
+  type: "VOLUME";
 
-    position: AnnotationPosition;
+  position: AnnotationPosition;
 
-    data: {
-        amount?: number;
-        amountMax?: number;
+  data: {
+    amount?: number;
+    amountMax?: number;
 
-        unit?: string;
-        unitText?: string;
-
-        [key: string]: unknown;
-    };
+    unit?: string;
+    unitText?: string;
 
     [key: string]: unknown;
+  };
+
+  [key: string]: unknown;
 }
 
 export type IngredientDescription =
-    | string
-    | {
-    text: string;
-    annotations: VolumeAnnotation[];
+  | string
+  | {
+      text: string;
+      annotations: VolumeAnnotation[];
 
-    [key: string]: unknown;
-};
-
-export interface IngredientAnnotation {
-    type:
-        | "INGREDIENT"
-        | "MISSED_INGREDIENT";
-
-    position: AnnotationPosition;
-
-    data: {
-        description: IngredientDescription;
-
-        notes?: string[];
-
-        [key: string]: unknown;
+      [key: string]: unknown;
     };
 
+export interface IngredientAnnotation {
+  type: "INGREDIENT" | "MISSED_INGREDIENT";
+
+  position: AnnotationPosition;
+
+  data: {
+    description: IngredientDescription;
+
+    notes?: string[];
+
     [key: string]: unknown;
+  };
+
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -265,35 +258,27 @@ export interface IngredientAnnotation {
  * translating text.
  */
 export interface GenericAnnotation {
-    type: string;
+  type: string;
 
-    position?: AnnotationPosition;
-    data?: unknown;
+  position?: AnnotationPosition;
+  data?: unknown;
 
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Annotation unions                                                           */
 /* -------------------------------------------------------------------------- */
 
-export type ProtectedCookingAnnotation =
-    | TtsAnnotation
-    | ModeAnnotation;
+export type ProtectedCookingAnnotation = TtsAnnotation | ModeAnnotation;
 
 export type Annotation =
-    | TtsAnnotation
-    | ModeAnnotation
-    | IngredientAnnotation
-    | GenericAnnotation;
+  TtsAnnotation | ModeAnnotation | IngredientAnnotation | GenericAnnotation;
 
 export function isProtectedCookingAnnotation(
-    annotation: Annotation,
+  annotation: Annotation,
 ): annotation is ProtectedCookingAnnotation {
-    return (
-        annotation.type === "TTS" ||
-        annotation.type === "MODE"
-    );
+  return annotation.type === "TTS" || annotation.type === "MODE";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -306,14 +291,14 @@ export function isProtectedCookingAnnotation(
  * Do not wrap these inside `recipeContent`.
  */
 export interface RecipeMetadataPatch {
-    name?: string;
-    ingredients?: Ingredient[];
-    hints?: string;
+  name?: string;
+  ingredients?: Ingredient[];
+  hints?: string;
 }
 
 /**
  * Exact instruction PATCH body.
  */
 export interface RecipeInstructionsPatch {
-    instructions: Instruction[];
+  instructions: Instruction[];
 }

@@ -1,4 +1,4 @@
-import type {CookidooClient} from "../cookidoo/client";
+import type { CookidooClient } from "../cookidoo/client";
 import {
   translateCreatedRecipe,
   type CreatedRecipeTranslationResult,
@@ -6,16 +6,23 @@ import {
   type TranslateCreatedRecipeOptions,
 } from "./translate-created-recipe";
 
-export type PublicRecipeTranslationProgress = RecipeTranslationProgress | {stage: "creating"};
+export type PublicRecipeTranslationProgress =
+  RecipeTranslationProgress | { stage: "creating" };
 
-export interface CreateAndTranslatePublicRecipeOptions extends Omit<TranslateCreatedRecipeOptions, "recipeId" | "onProgress"> {
+export interface CreateAndTranslatePublicRecipeOptions extends Omit<
+  TranslateCreatedRecipeOptions,
+  "recipeId" | "onProgress"
+> {
   publicRecipeId: string;
   onProgress?: (progress: PublicRecipeTranslationProgress) => void;
 }
 
 export class PublicRecipeTranslationError extends Error {
-  constructor(readonly createdRecipeId: string, cause: unknown) {
-    super("Created Recipe translation failed after import", {cause});
+  constructor(
+    readonly createdRecipeId: string,
+    cause: unknown,
+  ) {
+    super("Created Recipe translation failed after import", { cause });
   }
 }
 
@@ -23,9 +30,14 @@ export class PublicRecipeTranslationError extends Error {
 export async function createAndTranslatePublicRecipe(
   client: CookidooClient,
   options: CreateAndTranslatePublicRecipeOptions,
-): Promise<{createdRecipeId: string; translation: CreatedRecipeTranslationResult}> {
-  options.onProgress?.({stage: "creating"});
-  const createdRecipeId = await client.addPublicRecipeToCookidoo(options.publicRecipeId);
+): Promise<{
+  createdRecipeId: string;
+  translation: CreatedRecipeTranslationResult;
+}> {
+  options.onProgress?.({ stage: "creating" });
+  const createdRecipeId = await client.addPublicRecipeToCookidoo(
+    options.publicRecipeId,
+  );
   try {
     const translation = await translateCreatedRecipe(client, {
       recipeId: createdRecipeId,
@@ -36,7 +48,7 @@ export async function createAndTranslatePublicRecipe(
       translateText: options.translateText,
       detectLanguage: options.detectLanguage,
     });
-    return {createdRecipeId, translation};
+    return { createdRecipeId, translation };
   } catch (cause) {
     throw new PublicRecipeTranslationError(createdRecipeId, cause);
   }

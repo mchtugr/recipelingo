@@ -1,0 +1,12 @@
+node_modules
+.output
+dist
+build
+coverage
+.wxt
+web-ext-artifacts
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.zip

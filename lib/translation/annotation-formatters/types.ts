@@ -1,8 +1,18 @@
-import type {KnownModeName, ModeAnnotation, TtsAnnotation} from "@/lib/cookidoo/types";
+import type {
+  KnownModeName,
+  ModeAnnotation,
+  TtsAnnotation,
+} from "@/lib/cookidoo/types";
 
 export interface AnnotationFormatter {
-  formatTts(annotation: TtsAnnotation, context?: AnnotationFormatContext): string;
-  formatMode(annotation: ModeAnnotation, context?: AnnotationFormatContext): string;
+  formatTts(
+    annotation: TtsAnnotation,
+    context?: AnnotationFormatContext,
+  ): string;
+  formatMode(
+    annotation: ModeAnnotation,
+    context?: AnnotationFormatContext,
+  ): string;
 }
 
 export interface AnnotationFormatContext {
@@ -11,8 +21,8 @@ export interface AnnotationFormatContext {
 }
 
 export interface AnnotationMessages {
-  units: {second: string; minute: string};
-  labels: {speed: string; reverse: string};
+  units: { second: string; minute: string };
+  labels: { speed: string; reverse: string };
   modes: Partial<Record<KnownModeName, string>>;
   formatCount(count: number): string;
 }

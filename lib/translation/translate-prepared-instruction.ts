@@ -1,6 +1,15 @@
-import {translateWithChrome, type TranslateOptions} from "./chrome-translator";
-import {validateAnnotationMarkers, type MarkerValidationResult} from "./markers";
-import type {PreparedInstruction, ProtectedAnnotation} from "./prepare-instruction";
+import {
+  translateWithChrome,
+  type TranslateOptions,
+} from "./chrome-translator";
+import {
+  validateAnnotationMarkers,
+  type MarkerValidationResult,
+} from "./markers";
+import type {
+  PreparedInstruction,
+  ProtectedAnnotation,
+} from "./prepare-instruction";
 
 export interface TranslatedPreparedInstruction {
   text: string;
@@ -13,22 +22,17 @@ export interface TranslatePreparedInstructionOptions extends TranslateOptions {
   targetLanguage: string;
 }
 
-export type MarkerIntegrityStage =
-    | "prepared"
-    | "translated";
+export type MarkerIntegrityStage = "prepared" | "translated";
 
 export class AnnotationMarkerIntegrityError extends Error {
   readonly validation: MarkerValidationResult;
   readonly stage: MarkerIntegrityStage;
 
-  constructor(
-      stage: MarkerIntegrityStage,
-      validation: MarkerValidationResult,
-  ) {
+  constructor(stage: MarkerIntegrityStage, validation: MarkerValidationResult) {
     super(
-        stage === "prepared"
-            ? "Prepared instruction has inconsistent annotation markers"
-            : "Translation changed protected annotation markers",
+      stage === "prepared"
+        ? "Prepared instruction has inconsistent annotation markers"
+        : "Translation changed protected annotation markers",
     );
 
     this.name = "AnnotationMarkerIntegrityError";
@@ -42,48 +46,47 @@ export async function translatePreparedInstruction(
   options: TranslatePreparedInstructionOptions,
   translate: typeof translateWithChrome = translateWithChrome,
 ): Promise<TranslatedPreparedInstruction> {
-  const expectedMarkers = prepared.protectedAnnotations.map(({marker}) => marker);
-  const sourceValidation = validateAnnotationMarkers(expectedMarkers.join(" "), prepared.text);
+  const expectedMarkers = prepared.protectedAnnotations.map(
+    ({ marker }) => marker,
+  );
+  const sourceValidation = validateAnnotationMarkers(
+    expectedMarkers.join(" "),
+    prepared.text,
+  );
   if (!sourceValidation.valid) {
-    throw new AnnotationMarkerIntegrityError(
-        "prepared",
-        sourceValidation,
-    );
+    throw new AnnotationMarkerIntegrityError("prepared", sourceValidation);
   }
 
   if (!prepared.text.trim()) {
     return {
       text: prepared.text,
-      protectedAnnotations:
-          structuredClone(
-              prepared.protectedAnnotations,
-          ),
+      protectedAnnotations: structuredClone(prepared.protectedAnnotations),
       ...(prepared.metadata
-          ? {
-            metadata:
-                structuredClone(
-                    prepared.metadata,
-                ),
+        ? {
+            metadata: structuredClone(prepared.metadata),
           }
-          : {}),
+        : {}),
     };
   }
 
   const text = await translate(
-    {sourceLanguage: options.sourceLanguage, targetLanguage: options.targetLanguage, text: prepared.text},
-    {onDownloadProgress: options.onDownloadProgress},
+    {
+      sourceLanguage: options.sourceLanguage,
+      targetLanguage: options.targetLanguage,
+      text: prepared.text,
+    },
+    { onDownloadProgress: options.onDownloadProgress },
   );
   const validation = validateAnnotationMarkers(prepared.text, text);
   if (!validation.valid) {
-    throw new AnnotationMarkerIntegrityError(
-        "translated",
-        validation,
-    );
+    throw new AnnotationMarkerIntegrityError("translated", validation);
   }
 
   return {
     text,
     protectedAnnotations: structuredClone(prepared.protectedAnnotations),
-    ...(prepared.metadata ? {metadata: structuredClone(prepared.metadata)} : {}),
+    ...(prepared.metadata
+      ? { metadata: structuredClone(prepared.metadata) }
+      : {}),
   };
 }
