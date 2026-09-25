@@ -37,7 +37,13 @@ describe("restoreInstruction", () => {
     ["Karıştırma \uE01E/30 sn", "MODE", "blend", {time: 30}, "Blend \uE01E/30 sec", "Mixen \uE01E/30 Sek."],
     ["Isıtma \uE019/65°C", "MODE", "warm_up", {temperature: {value: "65", unit: "C"}, speed: "soft"}, "Warm Up \uE019/65°C", "Erwärmen \uE019/65°C"],
     ["Pilav Pişirici \uE00D", "MODE", "rice_cooker", undefined, "Rice Cooker \uE00D", "Reiskocher \uE00D"],
-    ["Yeni Mod \uE027/5 dk", "MODE", "future_mode", {time: 300}, "future_mode \uE027/5 min", "future_mode \uE027/5 Min."],
+    ["Yeni Mod \uE027/5 dk", "MODE", "future_mode", {
+      time: 300,
+      temperature: {value: "100", unit: "C"},
+      speed: "10",
+      power: "Intense",
+      opaque: {keep: true},
+    }, "future_mode \uE027", "future_mode \uE027"],
     ["1 sn/hız \uE002", "TTS", "", {time: 1, speed: "soft"}, "1 sec/speed \uE002", "1 Sek./Stufe \uE002"],
     ["1 dk/\uE003/hız 8.5", "TTS", "", {time: 60, direction: "CCW", speed: "8.5"}, "1 min/\uE003/speed 8.5", "1 Min./\uE003/Stufe 8.5"],
     ["1 sn/\uE003/hız \uE002", "TTS", "", {time: 1, direction: "CCW", speed: "soft"}, "1 sec/\uE003/speed \uE002", "1 Sek./\uE003/Stufe \uE002"],
@@ -53,6 +59,24 @@ describe("restoreInstruction", () => {
       expect(result.annotations[0]?.position).toEqual({offset: 0, length: expected.length});
       expect(result.annotations[0]?.data).toEqual(data);
     }
+  });
+
+  it("passes the exact MODE annotation span through the pipeline for source variants", () => {
+    const sourceSpan = "Dilimleme \uE037/İnce";
+    const sourceText = `Önce ${sourceSpan}, sonra servis edin.`;
+    const prepared = prepareInstruction({
+      type: "STEP",
+      text: sourceText,
+      annotations: [{
+        type: "MODE",
+        name: "slicing",
+        position: {offset: "Önce ".length, length: sourceSpan.length},
+      }],
+    });
+
+    expect(prepared.protectedAnnotations[0]?.originalText).toBe(sourceSpan);
+    expect(restoreInstruction(prepared, enAnnotationFormatter).text)
+      .toBe("Önce slicing \uE037/İnce, sonra servis edin.");
   });
 
   it("restores TTS with new position, preserved data and independent clones", () => {
@@ -177,7 +201,7 @@ describe("restoreInstruction", () => {
 
   it("uses the source mode name as a safe fallback", () => {
     expect(restore({text: "<0>", protectedAnnotations: [mode("<0>", "rice-cooker")]}).text)
-      .toBe("rice-cooker/3 dk");
+      .toBe("rice-cooker");
   });
 
   it.each([

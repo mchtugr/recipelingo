@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import type {ModeAnnotation, TtsAnnotation} from "../cookidoo/types";
+import type {ModeAnnotation, ModePower, TtsAnnotation} from "../cookidoo/types";
 import {
   ANNOTATION_FORMATTERS,
   ANNOTATION_MESSAGES,
@@ -10,7 +10,7 @@ import {
 
 const tts = (data: TtsAnnotation["data"]): TtsAnnotation =>
   ({type: "TTS", position: {offset: 0, length: 1}, data});
-const mode = (name: string, data: ModeAnnotation["data"]): ModeAnnotation =>
+const mode = (name: string, data?: ModeAnnotation["data"]): ModeAnnotation =>
   ({type: "MODE", name, position: {offset: 0, length: 1}, data});
 
 describe("trAnnotationFormatter", () => {
@@ -37,7 +37,7 @@ describe("trAnnotationFormatter", () => {
 
   it("rejects unsupported values", () => {
     expect(trAnnotationFormatter.formatMode(mode("rice-cooker", {time: 60})))
-      .toBe("rice-cooker/1 dk");
+      .toBe("rice-cooker");
     expect(() => trAnnotationFormatter.formatTts(tts({direction: "LEFT" as "CW"})))
       .toThrow("Unsupported TTS direction: LEFT");
   });
@@ -52,6 +52,59 @@ describe("trAnnotationFormatter", () => {
 });
 
 describe("shared annotation formatter", () => {
+  it("accepts optional MODE data and both verified browning power values", () => {
+    const powers: ModePower[] = ["Intense", "Gentle"];
+
+    expect(mode("egg_boiler")).toMatchObject({name: "egg_boiler", data: undefined});
+    for (const power of powers) {
+      const annotation = mode("browning", {
+        time: 300,
+        temperature: {value: "160", unit: "C"},
+        power,
+      });
+      expect(annotation.data?.power).toBe(power);
+      expect(getAnnotationFormatter("en").formatMode(annotation))
+        .toBe("browning/5 min/160°C");
+    }
+  });
+
+  it("uses only the verified visible fields for blend and warm_up", () => {
+    const formatter = getAnnotationFormatter("en");
+
+    expect(formatter.formatMode(mode("blend", {time: 60, speed: "10"})))
+      .toBe("Blend/1 min");
+    expect(formatter.formatMode(mode("warm_up", {
+      temperature: {value: "37", unit: "C"},
+      speed: "2",
+    }))).toBe("Warm Up/37°C");
+  });
+
+  it("formats sugar_stages with optional time and keeps open cooking unchanged", () => {
+    const formatter = getAnnotationFormatter("en");
+
+    expect(formatter.formatMode(mode("sugar_stages"))).toBe("sugar_stages");
+    expect(formatter.formatMode(mode("sugar_stages", {time: 1320})))
+      .toBe("sugar_stages/22 min");
+    expect(formatter.formatMode(mode("open cooking", {
+      time: 2700,
+      temperature: {value: "100", unit: "C"},
+    }))).toBe("open cooking/45 min/100°C");
+  });
+
+  it.each([
+    ["slicing", "Slicing \uE037/Thin", "slicing \uE037/Thin"],
+    ["slicing", "Slicing \uE037/Thick", "slicing \uE037/Thick"],
+    ["grating", "Grating \uE036/Thin", "grating \uE036/Thin"],
+    ["grating", "Grating \uE036/Thick", "grating \uE036/Thick"],
+    ["slicing", "Dilimleme \uE037/İnce", "slicing \uE037/İnce"],
+  ] as const)("preserves %s source variant from %s", (name, sourceText, expected) => {
+    const glyph = sourceText.match(/[\uE000-\uF8FF]/)?.[0] ?? "";
+    expect(getAnnotationFormatter("en").formatMode(mode(name), {
+      sourceText,
+      glyphs: [glyph],
+    })).toBe(expected);
+  });
+
   it("formats every confirmed MODE shape with source glyphs in every language", () => {
     const cases = [
       {name: "dough", data: {time: 10}, glyph: "\uE001", suffix: "/10"},
@@ -108,8 +161,20 @@ describe("shared annotation formatter", () => {
     const formatter = createAnnotationFormatter(ANNOTATION_MESSAGES.en);
     expect(formatter.formatTts(tts({time: 90}))).toBe("90 sec");
     expect(formatter.formatTts(tts({temperature: {value: "varoma"}}))).toBe("Varoma");
-    expect(formatter.formatMode(mode("future_mode", {time: 60, pulseCount: 2})))
-      .toBe("future_mode/1 min");
+    expect(formatter.formatMode(mode("future_mode", {
+      time: 60,
+      temperature: {value: "100", unit: "C"},
+      speed: "10",
+      power: "Intense",
+      opaque: {keep: true},
+    }))).toBe("future_mode");
+    expect(formatter.formatMode(mode("__proto__", {
+      time: 60,
+      temperature: {value: "100", unit: "C"},
+    }), {
+      sourceText: "\uE027",
+      glyphs: ["\uE027"],
+    })).toBe("__proto__ \uE027");
     expect(formatter.formatMode(mode("turbo", {pulseCount: 2}))).toBe("Turbo/2 times");
     expect(() => formatter.formatMode(mode("turbo", {pulseCount: -1})))
       .toThrow("Invalid MODE pulse count");

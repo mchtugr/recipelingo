@@ -141,18 +141,48 @@ export interface TtsAnnotation {
 /* MODE                                                                        */
 /* -------------------------------------------------------------------------- */
 
+export type KnownModeName =
+    | "egg_boiler"
+    | "blend"
+    | "rice_cooker"
+    | "sous_vide"
+    | "slow_cook"
+    | "browning"
+    | "sugar_stages"
+    | "fermentation"
+    | "dough"
+    | "thicken"
+    | "open cooking"
+    | "pre_clean"
+    | "warm_up"
+    | "kettle"
+    | "peeler"
+    | "turbo"
+    | "slicing"
+    | "grating"
+    | "spiralizing";
+
+export type ModeName = KnownModeName | (string & {});
+
+export type ModePower =
+    | "Intense"
+    | "Gentle"
+    | (string & {});
+
+export interface ModeTemperature {
+    value: string;
+    unit?: "C" | "F";
+
+    [key: string]: unknown;
+}
+
 export interface ModeData {
     time?: number;
-
     speed?: string;
-    direction?: Direction;
-    temperature?: Temperature;
-
+    temperature?: ModeTemperature;
+    power?: ModePower;
     pulseCount?: number;
     pulseCountMax?: number;
-
-    power?: "Gentle" | string;
-    accessory?: "Varoma" | string;
 
     [key: string]: unknown;
 }
@@ -166,7 +196,7 @@ export interface ModeAnnotation {
      * Keep this open because Cookidoo may introduce additional modes and
      * the formatter decides which modes it can safely restore.
      */
-    name: string;
+    name: ModeName;
 
     position: AnnotationPosition;
     data?: ModeData;
