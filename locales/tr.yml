@@ -1,9 +1,9 @@
 manifest:
-  name: Cookidoo Translator
+  name: RecipeLingo
   description: Guided Cooking ayarlarını koruyarak Cookidoo tariflerini çevirin.
 
 translator:
-  title: Cookidoo Translator
+  title: RecipeLingo
 
   intro:
     createdRecipe: Bu Created Recipe çevrilebilir.
@@ -29,7 +29,7 @@ translator:
     reload: Sayfayı yenile
     openCreatedRecipe: Oluşturulan tarifi aç
     signIn: Cookidoo'ya giriş yap
-    open: Cookidoo Translator'ı aç
+    open: RecipeLingo'yu aç
     closeDialog: Pencereyi kapat
 
   progress:
@@ -67,7 +67,7 @@ translator:
 popup:
   checking: Tarif kontrol ediliyor…
   openRecipe: Bir Cookidoo tarif sayfası açın.
-  unsupportedPage: Cookidoo Translator'ı kullanmak için Cookidoo'da bir tarif açın.
+  unsupportedPage: RecipeLingo'yu kullanmak için Cookidoo'da bir tarif açın.
   activeTabError: Etkin sekme kontrol edilemedi.
   activeTabUnavailable: Etkin sekmeye erişilemedi.
   recipeInfoUnavailable: Tarif bilgileri okunamadı.

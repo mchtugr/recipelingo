@@ -15,7 +15,7 @@ export default defineContentScript({
 
   async main(ctx) {
     const ui = await createShadowRootUi(ctx, {
-      name: "cookidoo-translator-ui",
+      name: "recipelingo-ui",
 
       position: "overlay",
 

@@ -1,9 +1,9 @@
 manifest:
-  name: Cookidoo Translator
-  description: Translate Cookidoo recipes while preserving Guided Cooking settings.
+  name: RecipeLingo
+  description: Translate Cookidoo recipes into your preferred language while preserving guided cooking information.
 
 translator:
-  title: Cookidoo Translator
+  title: RecipeLingo
 
   intro:
     createdRecipe: This Created Recipe can be translated.
@@ -29,7 +29,7 @@ translator:
     reload: Refresh page
     openCreatedRecipe: Open created recipe
     signIn: Sign in to Cookidoo
-    open: Open Cookidoo Translator
+    open: Open RecipeLingo
     closeDialog: Close dialog
 
   progress:
@@ -67,7 +67,7 @@ translator:
 popup:
   checking: Checking recipe…
   openRecipe: Open a Cookidoo recipe.
-  unsupportedPage: Cookidoo Translator can only be used on a Cookidoo recipe page.
+  unsupportedPage: RecipeLingo can only be used on a Cookidoo recipe page.
   activeTabError: The active tab could not be checked.
   activeTabUnavailable: The active tab could not be accessed.
   recipeInfoUnavailable: Recipe information could not be read.

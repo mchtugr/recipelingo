@@ -9,7 +9,7 @@ export default defineContentScript({
     const pageInfo = detectCookidooPage(window.location.href);
 
     if (pageInfo.type === "created-recipe") {
-      console.info("[Cookidoo Translator] Created recipe detected", pageInfo);
+      console.info("[RecipeLingo] Created recipe detected", pageInfo);
     }
   },
 });

@@ -9,7 +9,7 @@ export default defineContentScript({
     const pageInfo = detectCookidooPage(window.location.href);
 
     if (pageInfo.type === "public-recipe") {
-      console.info("[Cookidoo Translator] Public recipe detected", pageInfo);
+      console.info("[RecipeLingo] Public recipe detected", pageInfo);
     }
   },
 });

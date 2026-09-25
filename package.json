@@ -1,6 +1,6 @@
 {
-  "name": "cookidoo-translator",
-  "description": "A Chrome extension for Cookidoo translation.",
+  "name": "recipelingo",
+  "description": "RecipeLingo — translate Cookidoo recipes while preserving guided cooking information.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
