@@ -1,0 +1,97 @@
+manifest:
+  name: RecipeLingo
+  description: Cookidoo-Rezepte in Ihre bevorzugte Sprache übersetzen und Guided Cooking-Informationen erhalten.
+
+translator:
+  title: RecipeLingo
+  modal:
+    title: Rezept übersetzen
+  intro:
+    description: Wählen Sie die Sprache des Rezepts und die Zielsprache aus.
+  fields:
+    sourceLanguage: Rezeptsprache
+    targetLanguage: Zielsprache
+    autoDetect: Automatisch erkennen
+    loading: Wird geladen…
+    comingSoon: "{language} — Demnächst verfügbar"
+  unsupportedTarget:
+    title: "{language} ist noch nicht als Zielsprache verfügbar."
+    description: "Sie können weiterhin Rezepte aus dem {language} übersetzen. Die Zielsprache wurde auf {targetLanguage} gesetzt."
+  actions:
+    translate: Rezept übersetzen
+    createAndTranslate: Erstellen und übersetzen
+    importAndTranslate: Importieren und übersetzen
+    cancel: Abbrechen
+    close: Schließen
+    retry: Erneut versuchen
+    reload: Seite aktualisieren
+    openCreatedRecipe: Erstelltes Rezept öffnen
+    signIn: Bei Cookidoo anmelden
+    open: RecipeLingo öffnen
+    closeDialog: Dialog schließen
+  disclosure:
+    title: Was passiert?
+    localTranslation: Die Übersetzung läuft lokal in Chrome. RecipeLingo sendet keine Rezeptinhalte an eigene Server.
+    publicRecipe:
+      import: Dieses öffentliche Rezept wird in Ihre Created Recipes importiert und die importierte Kopie wird übersetzt.
+      unchanged: Das ursprüngliche öffentliche Rezept bleibt unverändert.
+    createdRecipe:
+      translate: Dieses Created Recipe wird in die ausgewählte Sprache übersetzt und der übersetzte Inhalt wird im Rezept gespeichert.
+  progress:
+    title: Rezept wird übersetzt…
+    creating: Rezept wird erstellt…
+    loading: Rezept wird geladen…
+    detectingLanguage: Rezeptsprache wird erkannt…
+    translatingMetadata: Rezeptinformationen werden übersetzt…
+    translatingInstructions: Schritte werden übersetzt…
+    savingMetadata: Rezeptinformationen werden gespeichert…
+    savingInstructions: Schritte werden gespeichert…
+    complete: Übersetzung wird abgeschlossen…
+    preparingModel: Sprachmodell wird vorbereitet…
+    keepOpen: Lassen Sie dieses Fenster geöffnet, bis die Übersetzung abgeschlossen ist.
+    label: Übersetzungsfortschritt
+    labelPercent: "Übersetzungsfortschritt: {percent}%"
+  success:
+    title: Rezept erfolgreich übersetzt
+    description: Die Übersetzung wurde in Cookidoo gespeichert.
+  error:
+    title: Rezept konnte nicht übersetzt werden
+    authenticationTitle: Cookidoo-Anmeldung erforderlich
+    authenticationRequired: Melden Sie sich bei Cookidoo an und kehren Sie hierher zurück, um es erneut zu versuchen.
+    generic: Das Rezept konnte nicht übersetzt werden. Bitte versuchen Sie es erneut.
+    environmentUnavailable: Die Chrome Translator API ist in dieser Umgebung nicht verfügbar.
+    languagePairUnavailable: Dieses Sprachpaar ist in dieser Chrome-Version nicht verfügbar.
+    importFailed: Das Rezept konnte nicht zu Cookidoo hinzugefügt werden. Bitte versuchen Sie es erneut.
+    createdRecipePartial: Das Created Recipe wurde erstellt, aber die Übersetzung oder Speicherung ist möglicherweise nicht abgeschlossen.
+    sourceDetectionFailed: Die Rezeptsprache konnte nicht zuverlässig erkannt werden. Wählen Sie die Rezeptsprache manuell aus.
+    sameLanguage: Das Rezept scheint bereits in der Zielsprache zu sein. Wählen Sie eine andere Zielsprache aus.
+    annotationIntegrity: Die Geräteeinstellungen konnten während der Übersetzung nicht sicher erhalten werden. Das Rezept wurde nicht gespeichert.
+
+popup:
+  tagline: Rezeptübersetzung für Cookidoo
+  checkingTitle: Diese Seite wird geprüft
+  checking: Rezept wird geprüft…
+  readyTitle: Bereit zum Übersetzen
+  publicRecipe: Öffentliches Cookidoo-Rezept
+  createdRecipe: Erstelltes Rezept
+  openRecipeTitle: Rezept öffnen
+  openRecipe: Öffnen Sie ein Cookidoo-Rezept.
+  unsupportedPageTitle: Seite nicht unterstützt
+  unsupportedPage: RecipeLingo kann nur auf einer Cookidoo-Rezeptseite verwendet werden.
+  errorTitle: RecipeLingo konnte diese Seite nicht prüfen
+  activeTabError: Der aktive Tab konnte nicht geprüft werden.
+  activeTabUnavailable: Auf den aktiven Tab konnte nicht zugegriffen werden.
+  recipeInfoUnavailable: Rezeptinformationen konnten nicht gelesen werden.
+
+languages:
+  tr: Türkisch
+  de: Deutsch
+  en: Englisch
+  es: Spanisch
+  fr: Französisch
+  it: Italienisch
+  pl: Polnisch
+  pt: Portugiesisch
+  nl: Niederländisch
+  cs: Tschechisch
+  el: Griechisch

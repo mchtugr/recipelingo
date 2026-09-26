@@ -5,9 +5,11 @@ manifest:
 translator:
   title: RecipeLingo
 
+  modal:
+    title: Tarifi çevir
+
   intro:
-    createdRecipe: Bu Created Recipe çevrilebilir.
-    publicRecipe: Bu Cookidoo tarifi kişisel tariflerinize eklenip çevrilebilir.
+    description: Tarif dilini ve hedef dili seçin.
 
   fields:
     sourceLanguage: Tarif dili
@@ -23,6 +25,7 @@ translator:
   actions:
     translate: Tarifi çevir
     createAndTranslate: Oluştur ve çevir
+    importAndTranslate: İçe aktar ve çevir
     cancel: İptal
     close: Kapat
     retry: Tekrar dene
@@ -31,6 +34,15 @@ translator:
     signIn: Cookidoo'ya giriş yap
     open: RecipeLingo'yu aç
     closeDialog: Pencereyi kapat
+
+  disclosure:
+    title: Ne olur?
+    localTranslation: Çeviri Chrome'da yerel olarak çalışır. RecipeLingo tarif içeriğini kendi sunucularına göndermez.
+    publicRecipe:
+      import: Bu herkese açık tarif Created Recipes koleksiyonunuza aktarılacak ve aktarılan kopya çevrilecek.
+      unchanged: Orijinal herkese açık tarif değişmeden kalacak.
+    createdRecipe:
+      translate: Bu Created Recipe seçilen dile çevrilecek ve çevrilen içerik tarife geri kaydedilecek.
 
   progress:
     title: Tarif çevriliyor…
@@ -65,9 +77,17 @@ translator:
     annotationIntegrity: Çeviri sırasında tarifin cihaz ayarları güvenli şekilde korunamadı. Tarif kaydedilmedi.
 
 popup:
+  tagline: Cookidoo için tarif çevirisi
+  checkingTitle: Sayfa kontrol ediliyor
   checking: Tarif kontrol ediliyor…
+  readyTitle: Çeviriye hazır
+  publicRecipe: Herkese açık Cookidoo tarifi
+  createdRecipe: Oluşturulan tarif
+  openRecipeTitle: Bir tarif açın
   openRecipe: Bir Cookidoo tarif sayfası açın.
+  unsupportedPageTitle: Sayfa desteklenmiyor
   unsupportedPage: RecipeLingo'yu kullanmak için Cookidoo'da bir tarif açın.
+  errorTitle: RecipeLingo bu sayfayı kontrol edemedi
   activeTabError: Etkin sekme kontrol edilemedi.
   activeTabUnavailable: Etkin sekmeye erişilemedi.
   recipeInfoUnavailable: Tarif bilgileri okunamadı.

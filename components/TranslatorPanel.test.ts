@@ -39,3 +39,35 @@ describe("target language selector", () => {
     expect(html).toMatch(/<option value="pt" disabled="">/);
   });
 });
+
+describe("translation modal content", () => {
+  it.each([
+    {
+      type: "public-recipe" as const,
+      primaryAction: "translator.actions.importAndTranslate",
+      detail: "translator.disclosure.publicRecipe.import",
+    },
+    {
+      type: "created-recipe" as const,
+      primaryAction: "translator.actions.translate",
+      detail: "translator.disclosure.createdRecipe.translate",
+    },
+  ])("uses contextual copy for $type", ({ type, primaryAction, detail }) => {
+    const html = renderToStaticMarkup(
+      createElement(TranslatorPanel, {
+        page: {
+          type,
+          hostname: "cookidoo.com.tr",
+          locale: "en-US",
+          recipeId: "r123",
+        },
+      }),
+    );
+
+    expect(html).toContain("translator.intro.description");
+    expect(html).toContain("translator.disclosure.title");
+    expect(html).toContain(`aria-expanded="false"`);
+    expect(html).toContain(primaryAction);
+    expect(html).not.toContain(detail);
+  });
+});

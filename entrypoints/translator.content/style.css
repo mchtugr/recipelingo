@@ -1,3 +1,5 @@
+@import "../../components/translator/shared.css";
+
 :host {
   /* Typography */
   --ct-font-family: Arial, Helvetica, sans-serif;
@@ -300,6 +302,58 @@
 }
 
 /* -------------------------------------------------------------------------- */
+/* Disclosure                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.ct-disclosure {
+  margin: 0 0 24px;
+  border-top: 1px solid var(--ct-border);
+  border-bottom: 1px solid var(--ct-border);
+}
+
+.ct-disclosure-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ct-text);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ct-disclosure-trigger:hover {
+  color: var(--ct-primary-hover);
+}
+
+.ct-disclosure-icon {
+  color: var(--ct-text-muted);
+  font-size: 20px;
+  line-height: 20px;
+}
+
+.ct-disclosure-content {
+  padding: 0 0 12px;
+  color: var(--ct-text-muted);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.ct-disclosure-content p {
+  margin: 0 0 8px;
+}
+
+.ct-disclosure-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Actions                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -377,6 +431,11 @@
   border-color: var(--ct-primary);
 
   box-shadow: 0 0 0 3px rgb(0 172 70 / 20%);
+}
+
+.ct-disclosure-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 2px 0 var(--ct-primary);
 }
 
 /*

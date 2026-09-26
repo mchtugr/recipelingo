@@ -5,9 +5,11 @@ manifest:
 translator:
   title: RecipeLingo
 
+  modal:
+    title: Translate recipe
+
   intro:
-    createdRecipe: This Created Recipe can be translated.
-    publicRecipe: This Cookidoo recipe can be added to your recipes and translated.
+    description: Choose the recipe language and target language.
 
   fields:
     sourceLanguage: Recipe language
@@ -23,6 +25,7 @@ translator:
   actions:
     translate: Translate recipe
     createAndTranslate: Create and translate
+    importAndTranslate: Import & translate
     cancel: Cancel
     close: Close
     retry: Try again
@@ -31,6 +34,15 @@ translator:
     signIn: Sign in to Cookidoo
     open: Open RecipeLingo
     closeDialog: Close dialog
+
+  disclosure:
+    title: What happens?
+    localTranslation: Translation runs locally in Chrome. RecipeLingo does not send recipe content to its own servers.
+    publicRecipe:
+      import: This public recipe will be imported into your Created Recipes and the imported copy will be translated.
+      unchanged: The original public recipe will remain unchanged.
+    createdRecipe:
+      translate: This Created Recipe will be translated into the selected language and the translated content will be saved back to the recipe.
 
   progress:
     title: Translating recipe…
@@ -65,9 +77,17 @@ translator:
     annotationIntegrity: The appliance settings could not be preserved safely during translation. The recipe was not saved.
 
 popup:
+  tagline: Recipe translation for Cookidoo
+  checkingTitle: Checking this page
   checking: Checking recipe…
+  readyTitle: Ready to translate
+  publicRecipe: Public Cookidoo recipe
+  createdRecipe: Created Recipe
+  openRecipeTitle: Open a recipe
   openRecipe: Open a Cookidoo recipe.
+  unsupportedPageTitle: Page not supported
   unsupportedPage: RecipeLingo can only be used on a Cookidoo recipe page.
+  errorTitle: RecipeLingo could not check this page
   activeTabError: The active tab could not be checked.
   activeTabUnavailable: The active tab could not be accessed.
   recipeInfoUnavailable: Recipe information could not be read.

@@ -223,7 +223,7 @@ export default function App() {
             aria-labelledby="ct-dialog-title"
           >
             <header className="ct-header">
-              <h2 id="ct-dialog-title">{i18n.t("translator.title")}</h2>
+              <h2 id="ct-dialog-title">{i18n.t("translator.modal.title")}</h2>
 
               <button
                 type="button"

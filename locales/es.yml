@@ -1,0 +1,97 @@
+manifest:
+  name: RecipeLingo
+  description: Traduce recetas de Cookidoo a tu idioma preferido y conserva la información de cocina guiada.
+
+translator:
+  title: RecipeLingo
+  modal:
+    title: Traducir receta
+  intro:
+    description: Elige el idioma de la receta y el idioma de destino.
+  fields:
+    sourceLanguage: Idioma de la receta
+    targetLanguage: Idioma de destino
+    autoDetect: Detectar automáticamente
+    loading: Cargando…
+    comingSoon: "{language} — Próximamente"
+  unsupportedTarget:
+    title: "{language} todavía no está disponible como idioma de destino."
+    description: "Aún puedes traducir recetas de {language}. El idioma de destino se ha establecido en {targetLanguage}."
+  actions:
+    translate: Traducir receta
+    createAndTranslate: Crear y traducir
+    importAndTranslate: Importar y traducir
+    cancel: Cancelar
+    close: Cerrar
+    retry: Reintentar
+    reload: Actualizar página
+    openCreatedRecipe: Abrir receta creada
+    signIn: Iniciar sesión en Cookidoo
+    open: Abrir RecipeLingo
+    closeDialog: Cerrar diálogo
+  disclosure:
+    title: ¿Qué ocurre?
+    localTranslation: La traducción se ejecuta localmente en Chrome. RecipeLingo no envía el contenido de las recetas a sus propios servidores.
+    publicRecipe:
+      import: Esta receta pública se importará a tus Created Recipes y se traducirá la copia importada.
+      unchanged: La receta pública original no cambiará.
+    createdRecipe:
+      translate: Esta Created Recipe se traducirá al idioma seleccionado y el contenido traducido se guardará en la receta.
+  progress:
+    title: Traduciendo receta…
+    creating: Creando receta…
+    loading: Cargando receta…
+    detectingLanguage: Detectando el idioma de la receta…
+    translatingMetadata: Traduciendo la información de la receta…
+    translatingInstructions: Traduciendo los pasos…
+    savingMetadata: Guardando la información de la receta…
+    savingInstructions: Guardando los pasos…
+    complete: Finalizando la traducción…
+    preparingModel: Preparando el modelo lingüístico…
+    keepOpen: Mantén esta ventana abierta hasta que termine la traducción.
+    label: Progreso de la traducción
+    labelPercent: "Progreso de la traducción: {percent}%"
+  success:
+    title: Receta traducida correctamente
+    description: La traducción se ha guardado en Cookidoo.
+  error:
+    title: No se ha podido traducir la receta
+    authenticationTitle: Se necesita iniciar sesión en Cookidoo
+    authenticationRequired: Inicia sesión en Cookidoo y vuelve aquí para intentarlo de nuevo.
+    generic: No se ha podido traducir la receta. Inténtalo de nuevo.
+    environmentUnavailable: La API Chrome Translator no está disponible en este entorno.
+    languagePairUnavailable: Este par de idiomas no está disponible en esta versión de Chrome.
+    importFailed: No se ha podido añadir la receta a Cookidoo. Inténtalo de nuevo.
+    createdRecipePartial: Se ha creado la Created Recipe, pero es posible que la traducción o el guardado no hayan terminado.
+    sourceDetectionFailed: No se ha podido detectar con fiabilidad el idioma de la receta. Selecciónalo manualmente.
+    sameLanguage: La receta parece estar ya en el idioma de destino. Elige otro idioma de destino.
+    annotationIntegrity: No se han podido conservar de forma segura los ajustes del aparato durante la traducción. La receta no se ha guardado.
+
+popup:
+  tagline: Traducción de recetas para Cookidoo
+  checkingTitle: Comprobando esta página
+  checking: Comprobando receta…
+  readyTitle: Listo para traducir
+  publicRecipe: Receta pública de Cookidoo
+  createdRecipe: Receta creada
+  openRecipeTitle: Abre una receta
+  openRecipe: Abre una receta de Cookidoo.
+  unsupportedPageTitle: Página no compatible
+  unsupportedPage: RecipeLingo solo se puede usar en una página de recetas de Cookidoo.
+  errorTitle: RecipeLingo no pudo comprobar esta página
+  activeTabError: No se ha podido comprobar la pestaña activa.
+  activeTabUnavailable: No se ha podido acceder a la pestaña activa.
+  recipeInfoUnavailable: No se ha podido leer la información de la receta.
+
+languages:
+  tr: Turco
+  de: Alemán
+  en: Inglés
+  es: Español
+  fr: Francés
+  it: Italiano
+  pl: Polaco
+  pt: Portugués
+  nl: Neerlandés
+  cs: Checo
+  el: Griego

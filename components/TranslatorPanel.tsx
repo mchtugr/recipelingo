@@ -185,6 +185,8 @@ function TranslatorPanel({
     status: "idle",
   });
 
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   const translationInFlight = useRef(false);
 
   const isRunning = translation.status === "running";
@@ -192,6 +194,10 @@ function TranslatorPanel({
   useEffect(() => {
     onRunningChange?.(isRunning);
   }, [isRunning, onRunningChange]);
+
+  useEffect(() => {
+    setDetailsOpen(false);
+  }, [page.recipeId, page.type]);
 
   useEffect(() => {
     let active = true;
@@ -388,13 +394,11 @@ function TranslatorPanel({
   });
 
   function renderIdle() {
+    const detailsId = "translator-recipe-details";
+
     return (
       <div className="ct-view">
-        <p className="ct-intro">
-          {page.type === "created-recipe"
-            ? i18n.t("translator.intro.createdRecipe")
-            : i18n.t("translator.intro.publicRecipe")}
-        </p>
+        <p className="ct-intro">{i18n.t("translator.intro.description")}</p>
 
         {unsupportedTargetWarning && (
           <aside className="ct-info" role="status">
@@ -475,6 +479,44 @@ function TranslatorPanel({
           </div>
         </div>
 
+        <div className="ct-disclosure">
+          <button
+            type="button"
+            className="ct-disclosure-trigger"
+            aria-expanded={detailsOpen}
+            aria-controls={detailsId}
+            onClick={() => {
+              setDetailsOpen((open) => !open);
+            }}
+          >
+            <span>{i18n.t("translator.disclosure.title")}</span>
+            <span aria-hidden="true" className="ct-disclosure-icon">
+              {detailsOpen ? "−" : "+"}
+            </span>
+          </button>
+
+          {detailsOpen && (
+            <div id={detailsId} className="ct-disclosure-content">
+              {page.type === "public-recipe" ? (
+                <>
+                  <p>{i18n.t("translator.disclosure.publicRecipe.import")}</p>
+                  <p>
+                    {i18n.t("translator.disclosure.publicRecipe.unchanged")}
+                  </p>
+                  <p>{i18n.t("translator.disclosure.localTranslation")}</p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    {i18n.t("translator.disclosure.createdRecipe.translate")}
+                  </p>
+                  <p>{i18n.t("translator.disclosure.localTranslation")}</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="actions">
           {onCancel && (
             <button type="button" className="secondary" onClick={onCancel}>
@@ -491,7 +533,7 @@ function TranslatorPanel({
             }}
           >
             {page.type === "public-recipe"
-              ? i18n.t("translator.actions.createAndTranslate")
+              ? i18n.t("translator.actions.importAndTranslate")
               : i18n.t("translator.actions.translate")}
           </button>
         </div>

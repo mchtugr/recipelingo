@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 type ParsedMessage = Awaited<ReturnType<typeof parseMessagesFile>>[number];
 
-async function messages(locale: "en" | "tr") {
+async function messages(locale: "en" | "tr" | "de" | "fr" | "es" | "it") {
   const parsed = await parseMessagesFile(
     fileURLToPath(new URL(`./${locale}.yml`, import.meta.url)),
   );
@@ -27,8 +27,15 @@ describe("locale resources", () => {
     expect(english.get("translator.fields.targetLanguage")).toBe(
       "Target language",
     );
+    expect(english.get("translator.modal.title")).toBe("Translate recipe");
+    expect(english.get("translator.intro.description")).toBe(
+      "Choose the recipe language and target language.",
+    );
     expect(english.get("translator.actions.translate")).toBe(
       "Translate recipe",
+    );
+    expect(english.get("translator.actions.importAndTranslate")).toBe(
+      "Import & translate",
     );
     expect(english.get("translator.progress.title")).toBe(
       "Translating recipe…",
@@ -39,14 +46,20 @@ describe("locale resources", () => {
     expect(english.get("translator.unsupportedTarget.description")).toBe(
       "You can still translate recipes from {language}. The target language has been set to {targetLanguage}.",
     );
+    expect(english.get("popup.tagline")).toBe(
+      "Recipe translation for Cookidoo",
+    );
+    expect(english.get("popup.readyTitle")).toBe("Ready to translate");
   });
 
   it("keeps Turkish keys aligned with the English default locale", async () => {
-    const [english, turkish] = await Promise.all([
-      messages("en"),
-      messages("tr"),
-    ]);
-    expect([...turkish.keys()].sort()).toEqual([...english.keys()].sort());
+    const locales = ["en", "tr", "de", "fr", "es", "it"] as const;
+    const parsed = await Promise.all(locales.map((locale) => messages(locale)));
+    const english = parsed[0]!;
+    const turkish = parsed[1]!;
+    for (const locale of parsed.slice(1)) {
+      expect([...locale.keys()].sort()).toEqual([...english.keys()].sort());
+    }
     expect(turkish.get("translator.actions.translate")).toBe("Tarifi çevir");
     expect(turkish.get("translator.unsupportedTarget.title")).toBe(
       "{language} henüz hedef dil olarak desteklenmiyor.",
@@ -54,6 +67,7 @@ describe("locale resources", () => {
     expect(turkish.get("translator.unsupportedTarget.description")).toBe(
       "{language} tarifleri çevirmeye devam edebilirsiniz. Hedef dil {targetLanguage} olarak ayarlandı.",
     );
+    expect(turkish.get("popup.readyTitle")).toBe("Çeviriye hazır");
   });
 
   it("provides localized labels for every recipe language", async () => {

@@ -1,0 +1,295 @@
+/* Shared RecipeLingo translator controls used by the popup and modal. */
+
+.ct-panel .fields {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 24px;
+}
+
+.ct-panel .field {
+  display: grid;
+  gap: 8px;
+}
+
+.ct-panel label {
+  color: var(--ct-text);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.ct-panel select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--ct-border-strong);
+  border-radius: var(--ct-radius-md);
+  background: var(--ct-surface);
+  color: var(--ct-text);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.ct-panel select:hover:not(:disabled) {
+  border-color: #adb6b0;
+}
+
+.ct-panel select:disabled {
+  border-color: var(--ct-border);
+  background: var(--ct-surface-disabled);
+  color: var(--ct-text-disabled);
+  cursor: default;
+  opacity: 1;
+}
+
+.ct-disclosure {
+  margin: 0 0 24px;
+  border-top: 1px solid var(--ct-border);
+  border-bottom: 1px solid var(--ct-border);
+}
+
+.ct-disclosure-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ct-text);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ct-disclosure-trigger:hover {
+  color: var(--ct-primary-hover);
+}
+
+.ct-disclosure-icon {
+  color: var(--ct-text-muted);
+  font-size: 20px;
+  line-height: 20px;
+}
+
+.ct-disclosure-content {
+  padding: 0 0 12px;
+  color: var(--ct-text-muted);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.ct-disclosure-content p {
+  margin: 0 0 8px;
+}
+
+.ct-disclosure-content p:last-child {
+  margin-bottom: 0;
+}
+
+.ct-panel .actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ct-panel button {
+  min-height: 46px;
+  padding: 11px 20px;
+  border: 0;
+  border-radius: var(--ct-radius-md);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.ct-panel button.primary {
+  background: var(--ct-primary);
+  color: var(--ct-primary-foreground);
+}
+
+.ct-panel button.primary:hover:not(:disabled) {
+  background: var(--ct-primary-hover);
+}
+
+.ct-panel button.primary:active:not(:disabled) {
+  background: var(--ct-primary-active);
+}
+
+.ct-panel button.primary:disabled {
+  background: var(--ct-surface-disabled);
+  color: var(--ct-text-disabled);
+  cursor: default;
+}
+
+.ct-panel button.secondary {
+  border: 1px solid var(--ct-border);
+  background: var(--ct-surface);
+  color: var(--ct-primary);
+}
+
+.ct-panel button.secondary:hover:not(:disabled) {
+  border-color: var(--ct-primary);
+  background: #f4faf6;
+  color: var(--ct-primary-hover);
+}
+
+.ct-app button:focus-visible,
+.ct-app select:focus-visible,
+.popup-shell button:focus-visible,
+.popup-shell select:focus-visible {
+  outline: none;
+  border-color: var(--ct-primary);
+  box-shadow: 0 0 0 3px rgb(0 172 70 / 20%);
+}
+
+.ct-disclosure-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 2px 0 var(--ct-primary);
+}
+
+.ct-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px 0 8px;
+  text-align: center;
+}
+
+.ct-state-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ct-success-bg);
+  color: var(--ct-primary);
+}
+
+.ct-state-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.ct-state-icon-progress {
+  background: var(--ct-info-bg);
+}
+
+.ct-state-error .ct-state-icon {
+  background: var(--ct-error-bg);
+  color: var(--ct-error);
+}
+
+.ct-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgb(0 172 70 / 20%);
+  border-top-color: var(--ct-primary);
+  border-radius: 50%;
+  animation: ct-spin 800ms linear infinite;
+}
+
+.ct-state-title {
+  margin: 4px 0 0;
+  color: var(--ct-dark-green);
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+.ct-state-description,
+.ct-state-hint,
+.ct-progress-secondary {
+  max-width: 360px;
+  margin: 0;
+  color: var(--ct-text-muted);
+}
+
+.ct-state-error .ct-state-description:first-of-type {
+  color: var(--ct-error);
+}
+
+.ct-state-hint,
+.ct-progress-secondary {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ct-progress {
+  width: min(100%, 320px);
+  margin: 4px 0;
+}
+
+.ct-progress-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ct-surface-disabled);
+}
+
+.ct-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ct-primary);
+  transition: width 180ms ease;
+}
+
+.ct-progress-indeterminate {
+  width: 38%;
+  animation: ct-progress 1.4s ease-in-out infinite;
+}
+
+.ct-result-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@keyframes ct-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ct-progress {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-panel button,
+  .ct-panel select,
+  .ct-progress-value {
+    transition: none;
+  }
+
+  .ct-spinner {
+    animation: none;
+  }
+
+  .ct-progress-indeterminate {
+    width: 100%;
+    opacity: 0.55;
+    animation: none;
+  }
+}

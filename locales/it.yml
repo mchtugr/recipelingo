@@ -1,0 +1,97 @@
+manifest:
+  name: RecipeLingo
+  description: Traduci le ricette Cookidoo nella lingua che preferisci mantenendo le informazioni della cucina guidata.
+
+translator:
+  title: RecipeLingo
+  modal:
+    title: Traduci ricetta
+  intro:
+    description: Scegli la lingua della ricetta e la lingua di destinazione.
+  fields:
+    sourceLanguage: Lingua della ricetta
+    targetLanguage: Lingua di destinazione
+    autoDetect: Rileva automaticamente
+    loading: Caricamento…
+    comingSoon: "{language} — Prossimamente"
+  unsupportedTarget:
+    title: "{language} non è ancora disponibile come lingua di destinazione."
+    description: "Puoi comunque tradurre le ricette da {language}. La lingua di destinazione è stata impostata su {targetLanguage}."
+  actions:
+    translate: Traduci ricetta
+    createAndTranslate: Crea e traduci
+    importAndTranslate: Importa e traduci
+    cancel: Annulla
+    close: Chiudi
+    retry: Riprova
+    reload: Aggiorna pagina
+    openCreatedRecipe: Apri ricetta creata
+    signIn: Accedi a Cookidoo
+    open: Apri RecipeLingo
+    closeDialog: Chiudi finestra di dialogo
+  disclosure:
+    title: Cosa succede?
+    localTranslation: La traduzione viene eseguita localmente in Chrome. RecipeLingo non invia i contenuti delle ricette ai propri server.
+    publicRecipe:
+      import: Questa ricetta pubblica verrà importata nelle tue Created Recipes e la copia importata verrà tradotta.
+      unchanged: La ricetta pubblica originale rimarrà invariata.
+    createdRecipe:
+      translate: Questa Created Recipe verrà tradotta nella lingua selezionata e il contenuto tradotto verrà salvato nella ricetta.
+  progress:
+    title: Traduzione della ricetta…
+    creating: Creazione della ricetta…
+    loading: Caricamento della ricetta…
+    detectingLanguage: Rilevamento della lingua della ricetta…
+    translatingMetadata: Traduzione delle informazioni della ricetta…
+    translatingInstructions: Traduzione dei passaggi…
+    savingMetadata: Salvataggio delle informazioni della ricetta…
+    savingInstructions: Salvataggio dei passaggi…
+    complete: Completamento della traduzione…
+    preparingModel: Preparazione del modello linguistico…
+    keepOpen: Tieni aperta questa finestra fino al completamento della traduzione.
+    label: Avanzamento della traduzione
+    labelPercent: "Avanzamento della traduzione: {percent}%"
+  success:
+    title: Ricetta tradotta correttamente
+    description: La traduzione è stata salvata su Cookidoo.
+  error:
+    title: Impossibile tradurre la ricetta
+    authenticationTitle: Accesso a Cookidoo richiesto
+    authenticationRequired: Accedi a Cookidoo, poi torna qui per riprovare.
+    generic: Impossibile tradurre la ricetta. Riprova.
+    environmentUnavailable: Chrome Translator API non è disponibile in questo ambiente.
+    languagePairUnavailable: Questa coppia di lingue non è disponibile in questa versione di Chrome.
+    importFailed: Impossibile aggiungere la ricetta a Cookidoo. Riprova.
+    createdRecipePartial: La Created Recipe è stata creata, ma la traduzione o il salvataggio potrebbero non essere completati.
+    sourceDetectionFailed: Impossibile rilevare in modo affidabile la lingua della ricetta. Selezionala manualmente.
+    sameLanguage: La ricetta sembra essere già nella lingua di destinazione. Seleziona un'altra lingua di destinazione.
+    annotationIntegrity: Non è stato possibile mantenere in sicurezza le impostazioni dell'apparecchio durante la traduzione. La ricetta non è stata salvata.
+
+popup:
+  tagline: Traduzione di ricette per Cookidoo
+  checkingTitle: Controllo della pagina
+  checking: Controllo della ricetta…
+  readyTitle: Pronto per la traduzione
+  publicRecipe: Ricetta pubblica di Cookidoo
+  createdRecipe: Ricetta creata
+  openRecipeTitle: Apri una ricetta
+  openRecipe: Apri una ricetta Cookidoo.
+  unsupportedPageTitle: Pagina non supportata
+  unsupportedPage: RecipeLingo può essere usato solo su una pagina di ricette Cookidoo.
+  errorTitle: RecipeLingo non ha potuto controllare questa pagina
+  activeTabError: Impossibile controllare la scheda attiva.
+  activeTabUnavailable: Impossibile accedere alla scheda attiva.
+  recipeInfoUnavailable: Impossibile leggere le informazioni della ricetta.
+
+languages:
+  tr: Turco
+  de: Tedesco
+  en: Inglese
+  es: Spagnolo
+  fr: Francese
+  it: Italiano
+  pl: Polacco
+  pt: Portoghese
+  nl: Olandese
+  cs: Ceco
+  el: Greco
