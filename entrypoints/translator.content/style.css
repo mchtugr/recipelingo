@@ -44,6 +44,34 @@
   --ct-z-modal: 1001;
 }
 
+:host {
+  display: inline-flex !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+  vertical-align: middle !important;
+}
+
+@media (max-width: 767px) {
+  :host {
+    display: flex !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  :host > div {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  :host > div > div,
+  .ct-inline-app,
+  .ct-inline-trigger {
+    width: 100%;
+  }
+}
+
 .ct-app,
 .ct-app * {
   box-sizing: border-box;
@@ -104,6 +132,46 @@
 
 .ct-fab[hidden] {
   display: none;
+}
+
+.ct-inline-app {
+  display: block;
+  width: auto;
+}
+
+.ct-inline-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  width: 100%;
+  white-space: nowrap;
+  padding: 12px 20px;
+  border: 1px solid var(--ct-primary);
+  border-radius: var(--ct-radius-md);
+  background: var(--ct-surface);
+  color: var(--ct-primary);
+  font-size: 1.125rem !important;
+  line-height: 22px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
+
+.ct-inline-trigger:hover {
+  border-color: var(--ct-primary-hover);
+  background: var(--ct-surface-subtle);
+  color: var(--ct-primary-hover);
+}
+
+.ct-inline-trigger:active {
+  background: var(--ct-info-bg);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -368,7 +436,7 @@
 .ct-panel button {
   min-height: 46px;
 
-  padding: 11px 20px;
+  padding: 12px 20px;
 
   border: 0;
   border-radius: var(--ct-radius-md);

@@ -4,6 +4,52 @@ import { i18n } from "#i18n";
 import TranslatorPanel from "@/components/TranslatorPanel";
 import { toTranslatorPageContext } from "@/components/translator/state";
 import { detectCookidooPage } from "@/lib/cookidoo/page";
+import {
+  findTranslationAnchor,
+  getInlineTriggerMessageKey,
+  INLINE_TRIGGER_BUTTON_TYPE,
+} from "@/lib/cookidoo/translation-surface";
+
+export const OPEN_TRANSLATOR_EVENT = "recipelingo:open-translator";
+export const SURFACE_EVENT = "recipelingo:surface";
+
+export interface InlineTriggerProps {
+  pageType: "public-recipe" | "created-recipe";
+}
+
+export function InlineTrigger({ pageType }: InlineTriggerProps) {
+  const label = i18n.t(getInlineTriggerMessageKey(pageType));
+
+  return (
+    <div className="ct-app ct-inline-app">
+      <button
+        type={INLINE_TRIGGER_BUTTON_TYPE}
+        className="ct-inline-trigger"
+        aria-label={label}
+        title={label}
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent(OPEN_TRANSLATOR_EVENT));
+        }}
+      >
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-6.5-3.5-9S9.5 5.5 12 3Z" />
+        </svg>
+        <span>{label}</span>
+      </button>
+    </div>
+  );
+}
 
 export default function App() {
   const [url, setUrl] = useState(location.href);
@@ -11,6 +57,15 @@ export default function App() {
   const [open, setOpen] = useState(false);
 
   const [running, setRunning] = useState(false);
+
+  const [inlineAvailable, setInlineAvailable] = useState(() => {
+    const initialPage = detectCookidooPage(location.href);
+    return (
+      (initialPage.type === "public-recipe" ||
+        initialPage.type === "created-recipe") &&
+      findTranslationAnchor() !== null
+    );
+  });
 
   const fab = useRef<HTMLButtonElement>(null);
 
@@ -20,6 +75,23 @@ export default function App() {
 
   const page = toTranslatorPageContext(pageInfo);
 
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    const handleSurface = (event: Event) => {
+      setInlineAvailable(
+        (event as CustomEvent<{ inline: boolean }>).detail.inline,
+      );
+    };
+
+    window.addEventListener(OPEN_TRANSLATOR_EVENT, handleOpen);
+    window.addEventListener(SURFACE_EVENT, handleSurface);
+
+    return () => {
+      window.removeEventListener(OPEN_TRANSLATOR_EVENT, handleOpen);
+      window.removeEventListener(SURFACE_EVENT, handleSurface);
+    };
+  }, []);
+
   const close = useCallback(() => {
     if (running) {
       return;
@@ -28,9 +100,11 @@ export default function App() {
     setOpen(false);
 
     requestAnimationFrame(() => {
-      fab.current?.focus();
+      if (!inlineAvailable) {
+        fab.current?.focus();
+      }
     });
-  }, [running]);
+  }, [inlineAvailable, running]);
 
   /*
    * Keep the content script mounted on all
@@ -84,6 +158,10 @@ export default function App() {
     setOpen(false);
     setRunning(false);
   }, [page]);
+
+  useEffect(() => {
+    setInlineAvailable(false);
+  }, [url]);
 
   /*
    * Focus management and a lightweight
@@ -178,7 +256,7 @@ export default function App() {
         aria-label={i18n.t("translator.actions.open")}
         title={i18n.t("translator.title")}
         onClick={() => setOpen(true)}
-        hidden={open}
+        hidden={open || inlineAvailable}
       >
         <svg
           aria-hidden="true"

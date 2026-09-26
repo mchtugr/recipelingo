@@ -26,7 +26,6 @@ export function detectCookidooPage(url: string | URL): CookidooPageInfo {
   const segments = parsedUrl.pathname.split("/").filter(Boolean);
   const [firstSegment, secondSegment, thirdSegment, fourthSegment] = segments;
 
-  console.log({ parsedUrl });
   if (
     parsedUrl.protocol !== "https:" ||
     !isCookidooHostname(parsedUrl.hostname)
