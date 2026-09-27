@@ -21,6 +21,16 @@ export const SUPPORTED_TARGET_LANGUAGES = SUPPORTED_ANNOTATION_LANGUAGES;
 export type SupportedTargetLanguage =
   (typeof SUPPORTED_TARGET_LANGUAGES)[number];
 
+export const SUPPORTED_UI_LOCALES = [
+  "en",
+  "de",
+  "fr",
+  "es",
+  "it",
+  "tr",
+] as const;
+export type SupportedUiLocale = (typeof SUPPORTED_UI_LOCALES)[number];
+
 export const COMING_SOON_TARGET_LANGUAGES = ["pl", "pt"] as const;
 
 export type TargetLanguageResolutionReason =
@@ -59,6 +69,30 @@ export function getLanguageFromLocale(
   return TRANSLATION_LANGUAGES.some((code) => code === language)
     ? (language as TranslationLanguage)
     : undefined;
+}
+
+export function getUiLocaleFromLocale(
+  locale: string | undefined,
+): SupportedUiLocale {
+  if (!locale?.trim()) return "en";
+
+  const normalized = locale.trim().replace(/_/g, "-");
+  let language: string | undefined;
+
+  try {
+    language = new Intl.Locale(normalized).language.toLowerCase();
+  } catch {
+    language = normalizeLocaleLanguage(normalized);
+  }
+
+  if (
+    language &&
+    (SUPPORTED_UI_LOCALES as readonly string[]).includes(language)
+  ) {
+    return language as SupportedUiLocale;
+  }
+
+  return "en";
 }
 
 export function isSupportedTargetLanguage(

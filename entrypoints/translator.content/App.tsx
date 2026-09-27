@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { i18n } from "#i18n";
+import { localizedI18n as i18n } from "@/lib/ui-locale";
+import { UI_LOCALE_CHANGED_EVENT } from "@/lib/ui-locale";
 
 import TranslatorPanel from "@/components/TranslatorPanel";
 import { toTranslatorPageContext } from "@/components/translator/state";
@@ -52,6 +53,7 @@ export function InlineTrigger({ pageType }: InlineTriggerProps) {
 }
 
 export default function App() {
+  const [, refreshUiLocale] = useState(0);
   const [url, setUrl] = useState(location.href);
 
   const [open, setOpen] = useState(false);
@@ -74,6 +76,13 @@ export default function App() {
   const pageInfo = detectCookidooPage(url);
 
   const page = toTranslatorPageContext(pageInfo);
+
+  useEffect(() => {
+    const handleLocaleChange = () => refreshUiLocale((value) => value + 1);
+    window.addEventListener(UI_LOCALE_CHANGED_EVENT, handleLocaleChange);
+    return () =>
+      window.removeEventListener(UI_LOCALE_CHANGED_EVENT, handleLocaleChange);
+  }, []);
 
   useEffect(() => {
     const handleOpen = () => setOpen(true);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { i18n } from "#i18n";
+import { localizedI18n as i18n } from "@/lib/ui-locale";
 
 import { CookidooClient } from "@/lib/cookidoo/client";
 

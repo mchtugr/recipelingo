@@ -1,13 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
   getLanguageFromLocale,
+  getUiLocaleFromLocale,
   normalizeLocaleLanguage,
   resolveTargetLanguage,
+  SUPPORTED_UI_LOCALES,
   SUPPORTED_TARGET_LANGUAGES,
 } from "./languages";
 
 it("supports exactly the v1 target languages", () => {
   expect([...SUPPORTED_TARGET_LANGUAGES].sort()).toEqual([
+    "de",
+    "en",
+    "es",
+    "fr",
+    "it",
+    "tr",
+  ]);
+});
+
+it("keeps UI locales independent from target languages", () => {
+  expect([...SUPPORTED_UI_LOCALES].sort()).toEqual([
     "de",
     "en",
     "es",
@@ -53,6 +66,16 @@ describe("normalizeLocaleLanguage", () => {
     ["tr-TR", "tr"],
   ])("normalizes %s without losing script distinctions", (locale, expected) => {
     expect(normalizeLocaleLanguage(locale)).toBe(expected);
+  });
+});
+
+describe("getUiLocaleFromLocale", () => {
+  it.each([
+    ["tr-TR", "tr"],
+    ["it-CH", "it"],
+    ["de-CH", "de"],
+  ])("normalizes %s to the UI locale %s", (locale, expected) => {
+    expect(getUiLocaleFromLocale(locale)).toBe(expected);
   });
 });
 

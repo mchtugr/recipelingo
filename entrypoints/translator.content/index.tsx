@@ -3,6 +3,7 @@ import ReactDOM, { type Root } from "react-dom/client";
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root";
 
 import { COOKIDOO_HOSTS } from "@/lib/cookidoo/domains";
+import { getUiLocale, setUiLocale } from "@/lib/ui-locale";
 
 import App, { InlineTrigger, SURFACE_EVENT } from "./App";
 
@@ -23,6 +24,7 @@ export default defineContentScript({
   cssInjectionMode: "ui",
 
   async main(ctx) {
+    await setUiLocale(document.documentElement.lang);
     const actionRowStyle = document.createElement("style");
     actionRowStyle.setAttribute("data-recipelingo-action-row-style", "");
     actionRowStyle.textContent = `
@@ -147,7 +149,14 @@ export default defineContentScript({
       );
     };
 
-    const reconcileTranslationSurface = () => {
+    const reconcileTranslationSurface = async () => {
+      const previousUiLocale = getUiLocale();
+      await setUiLocale(document.documentElement.lang);
+      if (previousUiLocale !== getUiLocale() && mountedAnchor) {
+        inlineUi.remove();
+        mountedAnchor = null;
+      }
+
       const page = detectCookidooPage(location.href);
       const anchor = findTranslationAnchor();
       const surface = resolveTranslationSurface(page, {
@@ -179,7 +188,7 @@ export default defineContentScript({
 
       reconcileTimer = window.setTimeout(() => {
         reconcileTimer = undefined;
-        reconcileTranslationSurface();
+        void reconcileTranslationSurface();
       }, 100);
     };
 
@@ -192,12 +201,17 @@ export default defineContentScript({
     };
 
     const observer = new MutationObserver(scheduleReconcile);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["lang"],
+      childList: true,
+      subtree: true,
+    });
     window.addEventListener("popstate", checkUrl);
     window.addEventListener("hashchange", checkUrl);
     const interval = window.setInterval(checkUrl, 1000);
 
-    reconcileTranslationSurface();
+    void reconcileTranslationSurface();
 
     ctx.onInvalidated(() => {
       observer.disconnect();
